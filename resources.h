@@ -7,6 +7,15 @@
 //#include <plx/list.h>
 //#include <plx/dr.h>
 
+enum {
+	MENUTRACK = 1,
+	INGAMETRACK1,
+	INGAMETRACK2,
+	INGAMETRACK3,
+	SCORETRACK,
+	CREDITTRACK,
+	INGAMETRACKNUM = 3
+};
 
 enum {
 	BOUNCE = 0,
@@ -22,6 +31,7 @@ extern sfxhnd_t sounds[];
 
 pvr_poly_cxt_t loadImage(char *name, int list);
 
+void cddaPlay(int track);
 void loadResources();
 void freeResources();
 void loadSounds();

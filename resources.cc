@@ -24,6 +24,11 @@ void loadFont() {
 	fcxt = plx_fcxt_create(fnt, PVR_LIST_TR_POLY);
 }
 
+void cddaPlay(int track) {
+	while (cdrom_cdda_play(track, track, 15, CDDA_TRACKS) != ERR_OK)
+		cdrom_reinit();
+}
+
 void freeFont() {
 	plx_fcxt_destroy(fcxt);
 	plx_font_destroy(fnt);
