@@ -87,10 +87,10 @@ q3dTypePolyhedron * generateTest(float max) {
 	return cube;
 }
 
-uint32 qtime = 0;
+uint32 gametime = 0;
 void handle_time(irq_t source, irq_context_t *context) {
 	int blah = timer_clear(TMU0);
-	if (!blah) qtime+=2;
+	if (!blah) gametime+=2;
 }
 
 KOS_INIT_FLAGS(INIT_DEFAULT /*INIT_IRQ*/ | INIT_MALLOCSTATS);
@@ -149,7 +149,7 @@ int main(int argc, char **argv) {
 
 	snd_init();
 
-	qtime = 0;
+	gametime = 0;
 
 
 
@@ -170,7 +170,7 @@ int main(int argc, char **argv) {
 	int mode = MAINMENU;
 
 	while (!done) {
-//		qtime = timer_ms_gettime64();
+//		gametime = timer_ms_gettime64();
 		switch (mode) {
 			case MAINMENU:
 				mode = mmenu.showMenu();
@@ -188,6 +188,8 @@ int main(int argc, char **argv) {
 				break;
 		}
 	}
+
+	cdrom_cdda_pause();
 
 	freeResources();
         pvr_stats_t stat;
