@@ -3,6 +3,14 @@
 
 #include <q3d.h>
 
+enum {
+	HOLE = 0,
+	NORMAL,
+	HIGH
+};
+
+extern uint8 levelData[];
+
 class Level {
 public:
 	Level();
