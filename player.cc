@@ -24,8 +24,8 @@ void Player::update() {
 
 	if (dev != NULL && dev->info.functions & MAPLE_FUNC_CONTROLLER) {
 		cont_state_t* s = (cont_state_t*) maple_dev_status(dev);
-		float cx = s->joyx / 4096.0f;
-		float cy = s->joyy / 4096.0f;
+		float cx = s->joyx / 2048.0f;
+		float speed = s->joyy / 4096.0f;
 
 		if (s->buttons & CONT_A) {
 			if ((qtime - jumpstart) < 250) {
@@ -36,8 +36,10 @@ void Player::update() {
 				jumpstart = qtime;
 		}
 
-		direction.x += cx;
-		direction.z += cy;
+		rotation.y -= cx;
+
+		direction.x += sin(rotation.y) * speed;
+		direction.z += cos(rotation.y) * speed;
 		direction.x = direction.x < -2 ? -2 : direction.x > 2 ? 2 : direction.x;
 		direction.z = direction.z < -2 ? -2 : direction.z > 2 ? 2 : direction.z;
 
@@ -72,15 +74,26 @@ void Player::update() {
 }
 
 void Player::draw(q3dTypeCamera *cam) {
-	sphere->_pos.x = position.x;
-	sphere->_pos.y = position.y;
-	sphere->_pos.z = position.z;
-
 	sphere->_agl.z = rotation.z;
 	sphere->_agl.x = rotation.x;
 
-	sphere->material.header = fillerPlayers.defaultHeader;
 	q3dColorSet3f(&sphere->material.color, 0.5f, 0.5f, 0.75f);
-	q3dPolyhedronPaint(sphere, cam, &fillerPlayers);
+
+	q3dMatrixLoad(&_q3dMatrixPerspective);
+	q3dMatrixApply(&_q3dMatrixCamera);
+	q3dMatrixTranslate(position.x, position.y, position.z);
+
+	q3dMatrixTransform(sphere->vertex, (pvr_vertex_t*)&sphere->_finalVertex[0].x, sphere->vertexLength, sizeof(pvr_vertex_t));
+
+	q3dMatrixLoad(&_q3dMatrixCamera);
+	q3dMatrixTranslate(position.x, position.y, position.z);
+	q3dMatrixStore(&_q3dMatrixTemp);
+
+	q3dMatrixTransformNormals(sphere->_uVertexNormal, sphere->_vertexNormal, sphere->vertexLength);
+//	q3dMatrixTransformNormals(poly->_uPolygonNormal, poly->_polygonNormal, poly->polygonLength);
+
+	fillerPlayers.update(sphere);
+	pvr_prim(&fillerPlayers.defaultHeader, sizeof(pvr_poly_hdr_t));
+	fillerPlayers.draw(sphere);
 }
 
