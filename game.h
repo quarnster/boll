@@ -5,16 +5,7 @@
 
 #include "player.h"
 #include "level.h"
-
-enum {
-	BOUNCE = 0,
-	BOUNCE2,
-	JUMP,
-	FALL,
-	SOUND_NUM
-};
-
-extern sfxhnd_t sounds[];
+#include "resources.h"
 
 class Player;
 

@@ -1,7 +1,6 @@
 #include <kos.h>
 #include <math.h>
 #include <stdio.h>
-#include <png/png.h>
 
 #include <q3d.h>
 
@@ -101,30 +100,6 @@ pvr_init_params_t pvr_params = {
 	4*512 * 1024
 };
 
-pvr_poly_cxt_t loadImage(char *name, int list) {
-	pvr_poly_cxt_t	cxt;
-	pvr_ptr_t	ptr;
-	uint32		width;
-	uint32		height;
-
-	int ret = png_load_texture(name, &ptr, PNG_NO_ALPHA, &width, &height);
-
-	if (ret) {
-		printf("*****************************\n\nerror loading image!!!!\n\n*****************************\n\n");
-	}
-
-	pvr_poly_cxt_txr(
-		&cxt,
-		list,
-		PVR_TXRFMT_RGB565 | PVR_TXRFMT_TWIDDLED,
-		width,
-		height,
-		ptr,
-		PVR_FILTER_BILINEAR
-	);
-
-	return cxt;
-}
 extern "C" int snd_init();
 
 bool done = false;
@@ -132,8 +107,6 @@ void ccallback(uint8 addr, uint32 buttons) {
 	done = true;
 }
 
-plx_font_t *fnt;
-plx_fcxt_t *fcxt;
 
 enum {
 	GAME = 0,
@@ -178,8 +151,6 @@ int main(int argc, char **argv) {
 
 	qtime = 0;
 
-	fnt = plx_font_load("font.txf");
-	fcxt = plx_fcxt_create(fnt, PVR_LIST_TR_POLY);
 
 
 #ifdef BETA
@@ -189,9 +160,12 @@ int main(int argc, char **argv) {
 	pvr_fog_table_color(1, 0, 0, 0);
 	pvr_fog_table_exp2(0.015f);
 
+	loadResources();
+
 	Game game;
 	Credits credits;
 	MainMenu mmenu;
+
 
 	int mode = MAINMENU;
 
@@ -215,9 +189,7 @@ int main(int argc, char **argv) {
 		}
 	}
 
-	plx_fcxt_destroy(fcxt);
-	plx_font_destroy(fnt);
-
+	freeResources();
         pvr_stats_t stat;
 	printf("get stats..\n");
         pvr_get_stats(&stat);

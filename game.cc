@@ -6,8 +6,6 @@
 #include <plx/list.h>
 #include <plx/dr.h>
 
-static plx_font_t *fnt;
-static plx_fcxt_t *fcxt;
 static point_t w;
 extern uint32 polysent;
 extern uint32 vertextest;
@@ -24,9 +22,6 @@ q3dTypeMatrix screen_matrix __attribute__((aligned(32))) = {
     { 0.0f, 0.0f, 0.0f, 1.0f }
 };
 
-sfxhnd_t sounds[SOUND_NUM];
-
-extern pvr_poly_cxt_t loadImage(char *, int);
 Game::Game() {
 	q3dMatrixInit();
 
@@ -63,17 +58,6 @@ Game::Game() {
 	);
 
 	pvr_poly_compile(&crossHeader, &cxt);
-
-	// load sounds
-	sounds[BOUNCE] = snd_sfx_load("bounce.wav");
-	sounds[BOUNCE2] = snd_sfx_load("bounce2.wav");
-	sounds[JUMP] = snd_sfx_load("jump.wav");
-	sounds[FALL] = snd_sfx_load("fall.wav");
-
-	// load debug-font
-	fnt = plx_font_load("font.txf");
-	fcxt = plx_fcxt_create(fnt, PVR_LIST_TR_POLY);
-	plx_fcxt_setcolor4f(fcxt, 1, 1, 1, 1);
 
 	w.x = 20;
 	w.y = 32;
