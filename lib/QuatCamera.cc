@@ -2,6 +2,7 @@
 #include "QuatCamera.h"
 
 QuatCamera::QuatCamera() {
+	q3dQuaternionInit(&qRot);
 }
 
 #define DELTA 1.0 / 32
