@@ -515,8 +515,6 @@ static KeyFrame frames[4];
 static q3dTypeVertex world_coordinates[8];
 
 Credits::Credits() {
-	q3dMatrixInit();
-
 	for (int i = 0; i < LINENUM; i++) {
 		float l, u, d, r;
 		plx_fcxt_str_metrics(fcxt, cred_text[i], &l, &u, &r, &d);
@@ -591,6 +589,7 @@ void Credits::run() {
 	static Point3D p2;
 	static Point3D p3;
 
+	q3dMatrixInit();
 	plx_fcxt_setsize(fcxt, fontSize);
 
 	Point3D gravity(0,-0.1,0);
