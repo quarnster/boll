@@ -9,6 +9,7 @@ OBJS = \
 	lib/Point3D.o \
 	lib/Keyframe.o \
 	lib/Keyframer.o \
+	resources.o \
 	credits.o \
 	game.o \
 	level.o \
