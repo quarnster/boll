@@ -5,8 +5,18 @@
 
 class Player : public Object {
 public:
-	Player();
+	Player(int unit, int device);
 	~Player();
+
+	void update();
+
+private:
+	int port;
+	int unit;
+
+	bool jump;
+	int jumpstart;
+	bool jumpok;
 
 };
 
