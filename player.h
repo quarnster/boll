@@ -16,9 +16,8 @@ public:
 private:
 	int port;
 
-	bool jump;
+	int previousButtons;
 	int jumpstart;
-	bool jumpok;
 
 };
 

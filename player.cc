@@ -3,9 +3,8 @@
 #include "player.h"
 
 Player::Player() : Object() {
-	jump = false;
 	jumpstart = 0;
-	jumpok = true;
+	previousButtons = 0;
 }
 
 Player::~Player() {
@@ -21,22 +20,20 @@ extern uint32 qtime;
 
 void Player::update() {
 	maple_device_t *dev = maple_enum_dev(port, 0);
+	bool inair = position.y <= -0.1f;
+
 	if (dev != NULL && dev->info.functions & MAPLE_FUNC_CONTROLLER) {
 		cont_state_t* s = (cont_state_t*) maple_dev_status(dev);
 		float cx = s->joyx / 4096.0f;
 		float cy = s->joyy / 4096.0f;
 
-		if (jumpok && s->buttons & CONT_A) {
-			jump = true;
-			if ((qtime - jumpstart) > 250) {
-				jumpok = false;
+		if (s->buttons & CONT_A) {
+			if ((qtime - jumpstart) < 250) {
+				direction.y = -0.85f;
 			}
 		} else {
-			if (jump) {
-				jump = false;
-				jumpok = false;
-			}
-			jumpstart = qtime;
+			if (!inair)
+				jumpstart = qtime;
 		}
 
 		direction.x += cx;
@@ -44,25 +41,16 @@ void Player::update() {
 		direction.x = direction.x < -2 ? -2 : direction.x > 2 ? 2 : direction.x;
 		direction.z = direction.z < -2 ? -2 : direction.z > 2 ? 2 : direction.z;
 
+		previousButtons = s->buttons;
 	}
 
 	// Update position and stuff
 	direction.x *= 0.97f;
 	direction.z *= 0.97f;
 
-	if (!jumpok || !jump) {
-		direction.y += 0.1f;
-	} else if (jump) {
-		if (direction.y < 0.1 && direction.y > -0.1)
-			direction.y = -0.85f;
-		else if (direction.y < -0.85f)
-			direction.y += 0.05f;
-	}
-
-
 	position.x += direction.x;
-	position.z += direction.z;
 	position.y += direction.y;
+	position.z += direction.z;
 
 	rotation.x -= direction.x * 0.25;
 	rotation.z += direction.z * 0.25;
@@ -70,10 +58,17 @@ void Player::update() {
 	// TODO: proper collusion detection
 	if (position.y > 0) {
 		position.y = 0;
-		direction.y = -direction.y * 0.75;
+		float val = 0.75;
+
+		if (direction.y < 1.0f) {
+			val = direction.y * direction.y  * val;
+		}
+		direction.y = -direction.y * val;
+		if (val < 0.1) direction.y = 0;
+	} else if (inair) {
+		// airborn. do some gravity to the ball
+		direction.y += 0.1f;
 	}
-	if (position.y > -1 && fabs(direction.y) < 0.05) jumpok = true;
-	else if (!jump) jumpok = false;
 }
 
 void Player::draw(q3dTypeCamera *cam) {
