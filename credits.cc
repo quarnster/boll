@@ -449,7 +449,7 @@ VECTOR CharacterEntity::collideWithWorld(const VECTOR& pos, const VECTOR& vel) {
 }
 */
 
-#define LINENUM 60
+#define LINENUM 90
 static int width[LINENUM];
 
 static float fontSize = 24;
@@ -461,21 +461,47 @@ static char cred_text[LINENUM][45] = {
 	"Andreas \"zantac\" Hedlund",
 	"",
 	"This has been the result of",
-	"around 50 days of work. The project",
-	"started at January 23rd and was",
-	"submitted to the dream-on competition",
-	"at March 16th (one day before the",
-	"deadline..)",
+	"around 50 days of work.",
 	"",
-	"Ofcourse, since I am a full time student,",
-	"I could not code everyday. And the days",
-	"I could, I could only code for an hour",
-	"or two.",
+	"The project started at January 23rd",
+	"and was submitted to the dream-on",
+	"competition at March 16th",
+	"(one day before the deadline..)",
+	"",
+	"",
+	"",
+	"Fredrik aka quarn/Outbreak on the keys.",
+	"",
+	"This has been the busiest period in my",
+	"life as of yet, and I am pretty amazed",
+	"by the fact that I managed to work on",
+	"this game, study for school and attend",
+	"my wing chun training with neither of",
+	"these suffering too much.",
+	"",
+	"I think Bruce lee said it best when",
+	"he said:",
+	"",
+	"\"Use no limitation as limitation\"",
+	"",
+	"",
+	"I just wish that I had found out about",
+	"this competition earlier. Then maybe the",
+	"game as described in \"gamedoc.doc\"",
+	"would have been completed by now.",
+	"",
+	"",
+	"But then again... maybe not ;)",
+	"",
+	"",
 	"",
 	"Acctually this is the first \"real\" game",
 	"that I've ever coded. Before this I've",
 	"only made \"snake\" (but I did it twice! ;))",
+	"",
 	"Not that bad for a first timer eh?",
+	"",
+	"",
 	"",
 	"This game would not have been possible",
 	"without all the people writing code",
@@ -494,6 +520,8 @@ static char cred_text[LINENUM][45] = {
 	"longer, but these are the names that",
 	"came to my mind",
 	"",
+	"",
+	"",
 	"We'd also like to send some greetings",
 	"to our friends in",
 	"",
@@ -507,7 +535,7 @@ static char cred_text[LINENUM][45] = {
 	"everyone we forgot",
 	"",
 	"and last but not least",
-	"YOU (for playing this game)",
+	"THANK YOU",
 	"",
 	"*hugs*",
 };
@@ -589,10 +617,6 @@ Credits::~Credits() {
 static Point3D velocity;
 void Credits::run() {
 	static Point3D key;
-	static CollisionPacket packet;
-	static Point3D p1;
-	static Point3D p2;
-	static Point3D p3;
 
 	cddaPlay(CREDITTRACK);
 	q3dMatrixInit();
@@ -617,15 +641,6 @@ void Credits::run() {
 				if (st->buttons & CONT_START || st->buttons & CONT_A) {
 					return;
 				}
-				if (st->buttons & CONT_Y) {
-					sphere->_pos.x = sphere->_pos.y = sphere->_pos.z = 0;
-					velocity.x =velocity.y = velocity.z = 0;
-				}
-				if (st->buttons & CONT_B) {
-					sphere->_pos.x = sphere->_pos.y = sphere->_pos.z = 0;
-					velocity.x =velocity.y = velocity.z = 0;
-					sphere->_pos.y = 20;
-				}
 			}
 
 			last = st->buttons;
@@ -633,82 +648,6 @@ void Credits::run() {
 
 		float time = (timer_ms_gettime64() - startTime) / 1000.0f;
 
-		cube->_agl.x = time*1.75*0.25;
-		cube->_agl.y = time*1.5*0.25;
-		cube->_agl.z = time*2.0*0.25;
-
-		q3dMatrixIdentity();
-		q3dMatrixRotateX(cube->_agl.x);
-		q3dMatrixRotateY(cube->_agl.y);
-		q3dMatrixRotateZ(cube->_agl.z);
-		q3dMatrixTransform(cube->vertex, world_coordinates, 8, sizeof(q3dTypeVertex));
-
-		packet.foundCollision = false;
-		packet.nearestDistance = 10;
-		packet.basePoint.set(sphere->_pos.x, sphere->_pos.y, sphere->_pos.z);
-		packet.velocity.set(velocity.x,velocity.y, velocity.z);
-		packet.normalizedVelocity.set(velocity.x,velocity.y, velocity.z);
-		packet.normalizedVelocity.normalize();
-
-		for (int i = 0; i < 6; i++) {
-			q3dTypeVertex *v = &world_coordinates[cube->polygon[i].vertex[0]];
-			p1.set(v->x, v->y, v->z);
-			v = &world_coordinates[cube->polygon[i].vertex[1]];
-			p2.set(v->x, v->y, v->z);
-			v = &world_coordinates[cube->polygon[i].vertex[2]];
-			p3.set(v->x, v->y, v->z);
-			checkTriangle(&packet, p1,p2, p3);
-
-			v = &world_coordinates[cube->polygon[i].vertex[2]];
-			p1.set(v->x, v->y, v->z);
-			v = &world_coordinates[cube->polygon[i].vertex[1]];
-			p2.set(v->x, v->y, v->z);
-			v = &world_coordinates[cube->polygon[i].vertex[3]];
-			p3.set(v->x, v->y, v->z);
-			checkTriangle(&packet, p1,p2, p3);
-		}
-
-		bool addVelocity = true;
-		if (packet.nearestDistance == 10) {
-			// no collision
-			sphere->_pos.x += packet.velocity.x;
-			sphere->_pos.y += packet.velocity.y;
-			sphere->_pos.z += packet.velocity.z;
-		} else {
-			float dist = packet.plane.signedDistanceTo(packet.basePoint);
-			float t = packet.t - 0.1;
-			if (fabs(dist) < 1.1)  {
-/*
-				// we are inside of the plane.. need to move outside
-				float d;
-				if (dist < 0) d = 1.1 + dist;
-				else d = -1.1 -dist;
-				sphere->_pos.x -= d * packet.plane.normal.x;
-				sphere->_pos.y -= d * packet.plane.normal.y;
-				sphere->_pos.z -= d * packet.plane.normal.z;
-*/
-//				packet.basePoint -= d * packet.plane.normal;
-//				printf("dist1: %f, dist2: %f\n", dist, packet.plane.signedDistanceTo(packet.basePoint));
-			} else /*if (t > 0.1)*/ {
-				sphere->_pos.x += t * packet.velocity.x;
-				sphere->_pos.y += t * packet.velocity.y;
-				sphere->_pos.z += t * packet.velocity.z;
-			}
-
-
-			Point3D normal = packet.plane.normal;
-			Point3D reflection = velocity - 2*(velocity.dot(normal)) * normal;
-			velocity = reflection *0.75;
-
-//			velocity *= 0;
-			if (velocity.squaredLength() < 1) {
-				// slide instead of bounce
-			//	velocity = gravity;
-//				addVelocity = false;
-			}
-		}
-		if (addVelocity)
-			velocity += gravity;
 
 		// begin rendering
 		pvr_wait_ready();
@@ -719,7 +658,9 @@ void Credits::run() {
 //		q3dPolyhedronPaint(sphere, &cam, &sphereFiller);
 
 
-		q3dAngleSetV(&torus->_agl, &cube->_agl);
+		torus->_agl.x = time * 0.25 * 1.2;
+		torus->_agl.y = time * 0.25 * 1.3;
+		torus->_agl.z = time * 0.25 * 1.1;
 		torus->material.header = torus1Filler.defaultHeader;
 		q3dColorSet3f(&torus->material.color, 1.0f, 1.0f,1.0f);
 		q3dPolyhedronPaint(torus, &cam, &torus1Filler);
