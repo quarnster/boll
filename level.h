@@ -9,10 +9,14 @@ public:
 	~Level();
 
 	void update();
-	void draw(q3dTypeCamera *cam);
+	void draw();
+
 
 private:
 	q3dTypeVertex	*vertex;
+	q3dTypeVertex	*finalPositions;
+	q3dTypeVertex	*positions;
+
 	pvr_vertex_t	*finalVertex;
 };
 
