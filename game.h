@@ -19,6 +19,7 @@ private:
 	Player	player[4];
 	Level	level;
 
+	pvr_poly_hdr_t	crossHeader;
 //	Object	*objects;
 };
 
