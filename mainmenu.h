@@ -3,6 +3,7 @@
 
 #include "menu.h"
 #include "resources.h"
+#include "effect/tunnel.h"
 
 class MainMenu : public Menu {
 public:
@@ -11,6 +12,8 @@ public:
 
 	int showMenu();
 
+private:
+	Tunnel tunnel;
 };
 
 #endif

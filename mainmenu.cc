@@ -60,12 +60,13 @@ int MainMenu::showMenu() {
 		pvr_wait_ready();
 		pvr_scene_begin();
 
-		pvr_list_begin(PVR_LIST_OP_POLY);
+		tunnel.draw();
+//		pvr_list_begin(PVR_LIST_OP_POLY);
 
 	//	q3dColorSet3f(&sphere->material.color, 1.0f, 0.0f, 0.0f);
 	//	q3dPolyhedronPaint(sphere, &cam, &sphereFiller);
 
-		pvr_list_finish();
+//		pvr_list_finish();
 
 		pvr_list_begin(PVR_LIST_TR_POLY);
 
