@@ -25,7 +25,7 @@ multitexturing is not available I found out.
 wrote a sphere generator.
 multiple spheres on the screen at the same time all controllable with different controllers.
 had lots of ideas for a level-generator
-read up on collusion detection and got some good ideas
+read up on collision detection and got some good ideas
 
 
 
@@ -70,3 +70,101 @@ Friday, January 30
 
 Still not 100% correct frustum culling... Bought a 3d-programming book ;)
 
+
+
+Saturday, January 31
+
+Players can now bounce into eachother! Ntscmenu uses the direct rendering api.
+
+
+
+Sunday, February 1
+
+The digital pad can be used to change items in the ntsc-selection menu.
+Sounds are played when bounceing into eachother/ground and when jumping.
+
+
+
+Monday, February 2
+
+Read up a bit on quaternions (which will be used to rotate the balls
+correctly in the world (avoiding "gimbal lock"))
+
+
+
+Wednesday, February 4
+
+Got some sounds and music from Andreas.
+
+
+
+Thursday, February 5
+
+Played around with adpcm trying to get samples to play for a longer time. (darn 64k limit)
+Level is drawed properly with fog and all. (No spikes yet though)
+You can fall down holes and go outside of the level. Also you can sit on top of boxes.
+
+
+
+Saturday, February 7
+
+You can now fully collide with boxes
+
+
+
+Sunday, February 15
+
+Wow.. it has been quite some time since I last got to work with the game... Mainly due to some
+heavy studying I needed to do for the uml-course I'm having at university and also
+for preparations for the skitrip to sälen... Anyway, back in sälen I read lots and lots
+of stuff in the 3d-game programming book I ordered a couple of weeks ago. I realized that
+clipping a polygon is basicly clipping a line (why didn't I think of that before?? :)) and
+got to think of a lot of other stuff that's pretty easy to fix.
+
+Today I coded some stuff to display how long a frame takes to render and also how many inside/outside
+tests are done and how many polygons are sent to the pvr. I guess the quadtree will help a lot in
+getting all of these numbers down :) (eventhough the time to render a frame is between 7-10 ms only...)
+I think that when I have the quadtree done I will recode the collission to work with polygons than just
+the hardcoded boxes/ground/hole-cases. This will do so that the game itself supports levels of any type,
+just that the levelgenerator might not :)
+
+Time to sleep.. school tomorrow..
+
+
+
+Tuesday, February 17
+
+Hah! Fixed the frustum problem.. It was acctually because of the matrix transform messing up the z-coordinate
+(1/w you know..), but that's taken care of now. Started working on a more flexible levelhandler.
+Got new music and new "optimized" sounds from Andreas.
+
+
+
+Wednesday, February 18
+
+Started writing quadtree stuff and moved some working 3d code from level.cc into their proper places
+in q3d.
+
+
+
+Thursday, February 19
+
+Wrote some more quadtree stuff and read up a lot about collision detection.
+
+
+
+Saturday, February 21
+
+Wrote lots of code for the credits part. Started writing collision detection stuff.
+
+
+
+Sunday, February 22
+
+Worked on clipping code and level rendering.
+
+
+
+Tuesday, February 24
+
+Made a mainmenu. More levelhandling work
