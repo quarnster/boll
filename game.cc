@@ -70,8 +70,9 @@ static q3dTypePolyhedron *generateSphere() {
 }
 q3dTypePolyhedron *sphere;
 q3dTypeFiller fillerPlayers;
+q3dTypeFiller fillerLevel;
 
-static q3dTypeMatrix screen_matrix __attribute__((aligned(32))) = {
+q3dTypeMatrix screen_matrix __attribute__((aligned(32))) = {
     { 480/4.0f, 0.0f, 0.0f, 0.0f },
     { 0.0f, 480 / 4.0f, 0.0f, 0.0f },
     { 0.0f, 0.0f, 1.0f, 0.0f },
@@ -85,6 +86,10 @@ Game::Game() {
 	q3dFillerCellInit(&fillerPlayers);
 	fillerPlayers.defaultCxt.gen.clip_mode = PVR_USERCLIP_INSIDE;
 	pvr_poly_compile(&fillerPlayers.defaultHeader, &fillerPlayers.defaultCxt);
+
+	q3dFillerStandardInit(&fillerLevel);
+	fillerLevel.defaultCxt.gen.clip_mode = PVR_USERCLIP_DISABLE;
+	pvr_poly_compile(&fillerLevel.defaultHeader, &fillerLevel.defaultCxt);
 
 	q3dCameraInit(&cam);
 	cam._pos.y = -5;
@@ -121,6 +126,7 @@ static pvr_poly_hdr_t user_clip = {
 };
 extern matrix_t projection_matrix;
 void Game::draw() {
+
 	// begin render with TA
 	pvr_scene_begin();
 	pvr_list_begin(PVR_LIST_OP_POLY);
@@ -173,7 +179,10 @@ void Game::draw() {
 
 		for (int j = 0; j < 4; j++) {
 			// TODO: camera stuff..
-			player[j].draw(&cam);
+			player[j].draw();
+		}
+		if (i == 1) {
+			level.draw();
 		}
 	}
 
