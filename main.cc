@@ -133,18 +133,21 @@ int main(int argc, char **argv) {
 	fs_chdir("/cd/data");
 #endif
 
+#ifndef	BETA
+
 	// Select the correct video-mode
 	if (vid_check_cable() == CT_VGA) {
 		vid_set_mode(DM_640x480_VGA, PM_RGB565);
 	} else if (flashrom_get_region() == FLASHROM_REGION_EUROPE) {
 		vid_set_mode(DM_640x480_PAL_IL,PM_RGB565);
-#ifndef	BETA
 		NtscMenu m;
 		m.showMenu();
-#endif
 	} else {
 		vid_set_mode(DM_640x480_NTSC_IL, PM_RGB565);
 	}
+#else
+	vid_set_mode(DM_640x480_NTSC_IL, PM_RGB565);
+#endif
 
 	pvr_set_bg_color(1.0f, 1.0f, 1.0f);
 
