@@ -109,7 +109,7 @@ void Player::update(Game *game) {
 				direction.y = 0.65f;
 			}
 			if (!jumpplay && (gametime - jumpstart) < 125) {
-				snd_sfx_play(sounds[JUMP], 255, 0);
+				snd_sfx_play(sounds[JUMP], 255, 128);
 				jumpplay = true;
 			}
 		} else {
@@ -125,6 +125,7 @@ void Player::update(Game *game) {
 //				snd_sfx_play(sounds[JUMP], 255, 0);
 				thrusting = true;
 				thrusttime = gametime;
+				snd_sfx_play(sounds[CHARGE], 255, 128);
 			}
 		} else {
 			if (thrusting/*  && (gametime - thrusttime) > 250*/) {
@@ -132,6 +133,7 @@ void Player::update(Game *game) {
 				long max = gametime - thrusttime;
 				if (max > 2000) max = 2000;
 				speed = (max / 1000.0f) * 2.0f;
+				snd_sfx_play(sounds[CHARGE_RELEASE], 255, 128);
 			}
 		}
 
@@ -233,15 +235,40 @@ And the final quaternion is obtained by Qx * Qy * Qz.
 			position += v;
 			p->position -= v;
 
+			bool tmp = false;
 			if (p->active) {
-				active = true;
+				tmp = active = true;
 				p->active = false;
 			} else if (active) {
 				active = false;
-				p->active = true;
+				tmp = p->active = true;
 			}
-			snd_sfx_play(sounds[BOUNCE], 255, 0);
+			if (tmp) {
+				if (game->type == GET_HIM)
+					snd_sfx_play(sounds[SCORE_PLUS], 255, 128);
+				else if (game->type == WATCH_OUT)
+					snd_sfx_play(sounds[SCORE_MINUS], 255, 128);
+			}
+			else 
+				snd_sfx_play(sounds[BOUNCE], 255, 128);
 		} 
+	}
+
+
+	// TODO: proper collusion detection
+	if (!dietime && position.y < level + radius) {
+		position.y = level + radius;
+		float val = 0.75;
+
+		if (fabs(direction.y) < 1.0f) {
+			val = direction.y * direction.y  * val;
+		}
+		direction.y = -direction.y * val;
+		if (val < 0.1) direction.y = 0;
+		snd_sfx_play(sounds[BOUNCE], 255, 128);
+	} else if (inair) {
+		// airborn. do some gravity to the ball
+		direction.y -= 0.075f;
 	}
 
 	// Collide with boxes
@@ -269,6 +296,7 @@ And the final quaternion is obtained by Qx * Qy * Qz.
 				float add = fpx < 0.3 ? 0.31 : 0.69;
 				position.x = (float) (ipx + add) / (float) BOARDSIZE * 2 * LEVELSIZE - LEVELSIZE;
 				direction.x = -direction.x * 0.5;
+				snd_sfx_play(sounds[BOUNCE], 255, 128);
 			}
 		}
 
@@ -279,24 +307,9 @@ And the final quaternion is obtained by Qx * Qy * Qz.
 				float add = fpz < 0.3 ? 0.31 : 0.69;
 				position.z = ((float) (ipz + add) / (float) BOARDSIZE * 2 * LEVELSIZE - LEVELSIZE);
 				direction.z = -direction.z * 0.5;
+				snd_sfx_play(sounds[BOUNCE], 255, 128);
 			}
 		}
-	}
-
-	// TODO: proper collusion detection
-	if (!dietime && position.y < level + radius) {
-		position.y = level + radius;
-		float val = 0.75;
-
-		if (fabs(direction.y) < 1.0f) {
-			val = direction.y * direction.y  * val;
-		}
-		direction.y = -direction.y * val;
-		if (val < 0.1) direction.y = 0;
-		snd_sfx_play(sounds[BOUNCE2], 255, 0);
-	} else if (inair) {
-		// airborn. do some gravity to the ball
-		direction.y -= 0.075f;
 	}
 
 	if (dietime > 0 || (position.y < 0/* && level < 0*/)) {
@@ -304,22 +317,36 @@ And the final quaternion is obtained by Qx * Qy * Qz.
 		if (dietime == 0) {
 			addScore(-5);
 			if (active) {
-				long lowest = 100000;
+				active = false;
 				int idx = 0;
-				for (int i = 0; i < 4; i++) {
-					int s = game->player[i].getScore();
-					if (s < lowest) {
-						idx = i;
-						lowest = s;
+
+				if (game->type == GET_HIM) {
+					long lowest = 100000;
+					for (int i = 0; i < 4; i++) {
+						int s = game->player[i].getScore();
+						if (s < lowest) {
+							idx = i;
+							lowest = s;
+						}
+					}
+				} else if (game->type == WATCH_OUT) {
+					long highest = -100000;
+					for (int i = 0; i < 4; i++) {
+						int s = game->player[i].getScore();
+						if (s > highest) {
+							idx = i;
+							highest = s;
+						}
 					}
 				}
-				active = false;
+
 				game->player[idx].active = true;
 			}
 			dietime = gametime;
 			thrusting = false;
 			snd_sfx_play(sounds[FALL], 255, 128);
-		} else if (gametime - dietime > 1500) {
+		}
+		if (gametime - dietime > 1500) {
 			dietime = 0;
 			position.y = 4*radius;
 			while (true) {
@@ -367,8 +394,12 @@ And the final quaternion is obtained by Qx * Qy * Qz.
 	}
 
 	if (!game->gameended && active) {
-		if (game->frame % 30 == 1)
-			scoreadd++;
+		if (game->frame % 30 == 1) {
+			if (game->type == GET_HIM)
+				scoreadd++;
+			else if (game->type == WATCH_OUT)
+				scoreadd--;
+		}
 		float l = 0.5f + fsin((gametime / 1000.0f)*3.141592 * 10) * 0.5f;
 		color.r = l;
 		color.g = l;
