@@ -27,8 +27,8 @@ void Player::update(Game *game) {
 	float level = 0;
 
 	// find out where in the level we are
-	float px = (100 + position.x) / 200;
-	float pz = (100 - position.z) / 200;
+	float px = (LEVELSIZE + position.x) / (2 * LEVELSIZE);
+	float pz = (LEVELSIZE - position.z) / (2 * LEVELSIZE);
 
 	int pos = (int) (pz * 32) *32 + (int) (px*32);
 	if (px < 0 || pz < 0 || px > 1 || pz > 1) {
@@ -68,7 +68,11 @@ void Player::update(Game *game) {
 				jumpplay = false;
 			}
 		}
-
+/*
+		if (s->buttons & CONT_Y) {
+			vid_screen_shot("/pc/tmp/screen.png");
+		}
+*/
 		rotation.y -= cx;
 
 		direction.x += sin(rotation.y) * speed;
@@ -152,9 +156,9 @@ void Player::update(Game *game) {
 
 		if (!(pos1 < 0 || pos1 >= 32)) {
 			pos1 += ipz * 32;
-			if (levelData[pos1] == HIGH && (fpx < 0.2 || fpx > 0.8)) {
-				float add = fpx < 0.2 ? 0.21 : 0.79;
-				position.x = (float) (ipx + add) / 32.0f * 200.0f - 100.0f;
+			if (levelData[pos1] == HIGH && (fpx < 0.1 || fpx > 0.9)) {
+				float add = fpx < 0.1 ? 0.11 : 0.89;
+				position.x = (float) (ipx + add) / 32.0f * 2 * LEVELSIZE - LEVELSIZE;
 				direction.x = -direction.x * 0.5;
 			}
 		}
@@ -162,9 +166,9 @@ void Player::update(Game *game) {
 		if (!(pos2 < 0 || pos2 >= 32)) {
 			pos2 *= 32;
 			pos2 += ipx;
-			if (levelData[pos2] == HIGH && (fpz < 0.2 || fpz > 0.8)) {
-				float add = fpz < 0.2 ? 0.21 : 0.79;
-				position.z = -((float) (ipz + add) / 32.0f * 200.0f - 100.0f);
+			if (levelData[pos2] == HIGH && (fpz < 0.1 || fpz > 0.9)) {
+				float add = fpz < 0.1 ? 0.11 : 0.89;
+				position.z = -((float) (ipz + add) / 32.0f * 2 * LEVELSIZE - LEVELSIZE);
 				direction.z = -direction.z * 0.5;
 			}
 		}
