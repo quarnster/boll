@@ -16,7 +16,7 @@ q3dTypeFiller fillerPlayers;
 q3dTypeFiller fillerLevel;
 
 q3dTypeMatrix screen_matrix __attribute__((aligned(32))) = {
-    { 480/4.0f, 0.0f, 0.0f, 0.0f },
+    { 640/4.0f, 0.0f, 0.0f, 0.0f },
     { 0.0f, 480 / 4.0f, 0.0f, 0.0f },
     { 0.0f, 0.0f, 1.0f, 0.0f },
     { 0.0f, 0.0f, 0.0f, 1.0f }
@@ -26,15 +26,15 @@ Game::Game() {
 	q3dMatrixInit();
 
 	sphere = generateSphere();
-//	q3dFillerCellInit(&fillerPlayers);
-	q3dFillerStandardInit(&fillerPlayers);
-//	fillerPlayers.defaultCxt.gen.clip_mode = PVR_USERCLIP_INSIDE;
-//	fillerPlayers.defaultCxt.gen.fog_type = PVR_FOG_TABLE;
+	q3dFillerCellInit(&fillerPlayers);
+//	q3dFillerStandardInit(&fillerPlayers);
+	fillerPlayers.defaultCxt.gen.clip_mode = PVR_USERCLIP_INSIDE;
+	fillerPlayers.defaultCxt.gen.fog_type = PVR_FOG_TABLE;
 	pvr_poly_compile(&fillerPlayers.defaultHeader, &fillerPlayers.defaultCxt);
 
-	q3dFillerStandardInit(&fillerLevel);
+	q3dFillerTextureInit(&fillerLevel);
 	fillerLevel.defaultCxt = loadImage("buzz.png", PVR_LIST_OP_POLY);
-	fillerLevel.defaultCxt.gen.clip_mode = PVR_USERCLIP_DISABLE; //PVR_USERCLIP_INSIDE;
+	fillerLevel.defaultCxt.gen.clip_mode = PVR_USERCLIP_INSIDE;
 	fillerLevel.defaultCxt.gen.fog_type = PVR_FOG_TABLE;
 	pvr_poly_compile(&fillerLevel.defaultHeader, &fillerLevel.defaultCxt);
 
@@ -75,9 +75,11 @@ Game::~Game() {
 }
 
 extern bool done;
+extern uint32 qtime;
 void Game::run() {
 	while (!done/*true*/) {
 		// TODO: check for exit.. ?
+		qtime = timer_ms_gettime64();
 		update();
 		draw();
 	}
@@ -110,7 +112,7 @@ void Game::draw() {
 	// draw..
 	for (int i = 0; i < 4; i++) {
 		q3dMatrixIdentity();
-		q3dMatrixTranslate(0,-8,10);
+		q3dMatrixTranslate(0,-4.5f-player[i].camheight-player[i].camadd, player[i].zoom /*10*/);
 		q3dMatrixRotateY(player[i].rotation.y);
 		q3dMatrixTranslate(-player[i].position.x, 0/*-player[i].position.y*/,-player[i].position.z);
 
@@ -153,18 +155,24 @@ void Game::draw() {
 		q3dMatrixApply(&projection_matrix);
 		q3dMatrixStore(&_q3dMatrixPerspective);
 
+		q3dTypeVertex vert;
 		for (int j = 0; j < 4; j++) {
-			// TODO: camera stuff..
-			player[j].draw();
+			q3dMatrixLoad(&_q3dMatrixCamera);
+			q3dVertexSet3f(&vert, player[j].position.x, player[j].position.y, player[j].position.z);
+			mat_trans_single3(vert.x, vert.y, vert.z);
+			if (vert.z >= 0)
+				player[j].draw();
 		}
 
 		q3dMatrixIdentity();
 		q3dMatrixRotateY(player[i].rotation.y);
 		q3dMatrixStore(&_q3dMatrixTemp);
-		if (i == 0) {
+//		if (i == 1) {
 			level.draw();
-		}
+//		}
 	}
+
+	uint64 end = timer_ms_gettime64();
 
 	// commit cross
 	pvr_prim(&crossHeader, sizeof(pvr_poly_hdr_t));
@@ -208,12 +216,13 @@ void Game::draw() {
 
 	pvr_list_begin(PVR_LIST_TR_POLY);
 
+#ifdef BETA
 	w.y = 32;
 	plx_fcxt_begin(fcxt);
 
 	w.y += 32;
 	plx_fcxt_setpos_pnt(fcxt, &w);
-	sprintf(buf, "time: %d", timer_ms_gettime64() - start);
+	sprintf(buf, "time: %d", end - start);
 	plx_fcxt_draw(fcxt, buf);
 
 	w.y += 32;
@@ -226,7 +235,17 @@ void Game::draw() {
 	sprintf(buf, "tests: %d", vertextest);
 	plx_fcxt_draw(fcxt, buf);
 
+	w.y += 32;
+	plx_fcxt_setpos_pnt(fcxt, &w);
+	sprintf(buf, "pos: (%f, %f, %f)", player[0].position.x, player[0].position.y, player[0].position.z);
+	plx_fcxt_draw(fcxt, buf);
+	w.y += 32;
+	plx_fcxt_setpos_pnt(fcxt, &w);
+	sprintf(buf, "rot: (%f, %f, %f)", player[0].rotation.x, player[0].rotation.y, player[0].rotation.z);
+	plx_fcxt_draw(fcxt, buf);
+
 	plx_fcxt_end(fcxt);
+#endif
 
 	pvr_list_finish();
 
