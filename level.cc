@@ -5,8 +5,12 @@ extern q3dTypeFiller fillerLevel;
 
 #define NUM 33
 #define NUM1 32
-static q3dTypeVertex vertex[2*NUM*NUM] __attribute__((aligned(32)));
-static q3dTypeVertex vertexScreen[2*NUM*NUM] __attribute__((aligned(32)));
+static q3dTypeVertex vertex[3*NUM*NUM] __attribute__((aligned(32)));
+static q3dTypeVertex vertexScreen[3*NUM*NUM] __attribute__((aligned(32)));
+
+static q3dTypeVertex sky[4] __attribute__((aligned(32)));
+static q3dTypeVertex skyScreen[4] __attribute__((aligned(32)));
+
 static q3dTypeVertex position[NUM1*NUM1] __attribute__((aligned(32)));
 static q3dTypeVertex positionWorld[NUM1*NUM1] __attribute__((aligned(32)));
 
@@ -16,31 +20,23 @@ static q3dTypeVector normalsWorld[5] __attribute__((aligned(32)));
 uint8 levelData[NUM1 * NUM1];
 
 Level::Level() {
+	float size = LEVELSIZE;
+	float size2 = LEVELHEIGHT;
+
 	int pos = 0;
-	float size = 100;
-	float size2 = 10;
-	for (int z = 0; z < NUM; z++) {
-		float zpos = (z / (float) NUM1) * 2 - 1;
-		zpos *= size;
-		for (int x = 0; x < NUM; x++) {
-			float xpos = (x / (float) NUM1) * 2 - 1;
-			xpos *= size;
-			vertex[pos].x = xpos;
-			vertex[pos].y = 0;
-			vertex[pos].z = -zpos;
-			pos++;
-		}
-	}
-	for (int z = 0; z < NUM; z++) {
-		float zpos = (z / (float) NUM1) * 2 - 1;
-		zpos *= size;
-		for (int x = 0; x < NUM; x++) {
-			float xpos = (x / (float) NUM1) * 2 - 1;
-			xpos *= size;
-			vertex[pos].x = xpos;
-			vertex[pos].y = -size2;
-			vertex[pos].z = -zpos;
-			pos++;
+	for (int i = 0, y = 2; i < 3; i++, y -= size2) {
+		if (i == 1) y = 0;
+		for (int z = 0; z < NUM; z++) {
+			float zpos = (z / (float) NUM1) * 2 - 1;
+			zpos *= size;
+			for (int x = 0; x < NUM; x++) {
+				float xpos = (x / (float) NUM1) * 2 - 1;
+				xpos *= size;
+				vertex[pos].x = xpos;
+				vertex[pos].y = y;
+				vertex[pos].z = -zpos;
+				pos++;
+			}
 		}
 	}
 	pos = 0;
@@ -74,6 +70,12 @@ Level::Level() {
 	q3dVectorSet3f(&normals[2],  0,  0, -1);
 	q3dVectorSet3f(&normals[3],  1,  0,  0);
 	q3dVectorSet3f(&normals[4],  0,  0,  1);
+
+
+	q3dVertexSet3f(&sky[0], -size, -20, size);
+	q3dVertexSet3f(&sky[1], -size, -20, -size);
+	q3dVertexSet3f(&sky[2],  size, -20, size);
+	q3dVertexSet3f(&sky[3],  size, -20, -size);
 }
 
 Level::~Level() {
@@ -117,7 +119,7 @@ void Level::draw() {
 	q3dMatrixApply(&projection_matrix);
 	q3dMatrixApply(&_q3dMatrixCamera);
 
-	mat_transform(vertex, vertexScreen, 2*NUM*NUM, sizeof(q3dTypeVertex));
+	mat_transform(vertex, vertexScreen, 3*NUM*NUM, sizeof(q3dTypeVertex));
 //	q3dMatrixTransform(vertex, (pvr_vertex_t*) &finalVertex[0].x, 3*NUM*NUM, sizeof(pvr_vertex_t));
 
 //	q3dMatrixLoad(&_q3dMatrixPer
@@ -212,19 +214,22 @@ void Level::draw() {
 	pvr_vertex_t *vert;
 	q3dTypeVector v;
 	int pos = 0;
+
+	int add = NUM * NUM;
 	for (int z = 0; z < NUM1; z++) { 
 		for (int x = 0; x < NUM1; x++, pos++) {
-			if (levelData[pos] == HOLE)
-				continue;
+//			if (levelData[pos] == HOLE)
+//				continue;
 
 			// todo: cull invisible stuff
-			int v1 = z * NUM + x;
+			int v1 = add + z * NUM + x;
 			int v2 = v1 + NUM;
 			int v3 = v1 + 1;
 			int v4 = v2 + 1;
 
 //			int color = 0xff00;
 
+/*
 			int c = z * NUM1 + x;
 			v.x = positionWorld[c].x;
 			v.y = positionWorld[c].y;
@@ -233,7 +238,7 @@ void Level::draw() {
 			float r = q3dPlanePointInPlane(&right, &v);
 			float n = q3dPlanePointInPlane(&near, &v);
 			float f = q3dPlanePointInPlane(&far, &v);
-/*
+
 			if (v.z > 0.125) color = 0xff0000;
 
 			if (l < -0.5) {
@@ -263,10 +268,10 @@ void Level::draw() {
 
 			if (levelData[pos] == HIGH) {
 				// todo: cull invisible stuff
-				int v5 = v1 + NUM * NUM;
-				int v6 = v2 + NUM * NUM;
-				int v7 = v3 + NUM * NUM;
-				int v8 = v4 + NUM * NUM;
+				int v5 = v1 + add;
+				int v6 = v2 + add;
+				int v7 = v3 + add;
+				int v8 = v4 + add;
 				if (vertexScreen[v5].z < 0 ||
 					vertexScreen[v6].z < 0 ||
 					vertexScreen[v7].z < 0 ||
@@ -317,6 +322,7 @@ void Level::draw() {
 				vert->x = vertexScreen[v2].x;
 				vert->y = vertexScreen[v2].y;
 				vert->z = vertexScreen[v2].z;
+				vert->u = 0; vert->v = 1;
 				vert->argb = color[2];
 				vert->flags = PVR_CMD_VERTEX;
 				pvr_dr_commit(vert);
@@ -325,6 +331,7 @@ void Level::draw() {
 				vert->x = vertexScreen[v4].x;
 				vert->y = vertexScreen[v4].y;
 				vert->z = vertexScreen[v4].z;
+				vert->u = 0; vert->v = 0;
 				vert->argb = color[2];
 				vert->flags = PVR_CMD_VERTEX;
 				pvr_dr_commit(vert);
@@ -333,6 +340,7 @@ void Level::draw() {
 				vert->x = vertexScreen[v6].x;
 				vert->y = vertexScreen[v6].y;
 				vert->z = vertexScreen[v6].z;
+				vert->u = 1; vert->v = 1;
 				vert->argb = color[2];
 				vert->flags = PVR_CMD_VERTEX;
 				pvr_dr_commit(vert);
@@ -341,6 +349,7 @@ void Level::draw() {
 				vert->x = vertexScreen[v8].x;
 				vert->y = vertexScreen[v8].y;
 				vert->z = vertexScreen[v8].z;
+				vert->u = 1; vert->v = 0;
 				vert->argb = color[2];
 				vert->flags = PVR_CMD_VERTEX_EOL;
 				pvr_dr_commit(vert);
@@ -350,6 +359,7 @@ void Level::draw() {
 				vert->x = vertexScreen[v4].x;
 				vert->y = vertexScreen[v4].y;
 				vert->z = vertexScreen[v4].z;
+				vert->u = 0; vert->v = 1;
 				vert->argb = color[3];
 				vert->flags = PVR_CMD_VERTEX;
 				pvr_dr_commit(vert);
@@ -358,6 +368,7 @@ void Level::draw() {
 				vert->x = vertexScreen[v3].x;
 				vert->y = vertexScreen[v3].y;
 				vert->z = vertexScreen[v3].z;
+				vert->u = 0; vert->v = 0;
 				vert->argb = color[3];
 				vert->flags = PVR_CMD_VERTEX;
 				pvr_dr_commit(vert);
@@ -366,6 +377,7 @@ void Level::draw() {
 				vert->x = vertexScreen[v8].x;
 				vert->y = vertexScreen[v8].y;
 				vert->z = vertexScreen[v8].z;
+				vert->u = 1; vert->v = 1;
 				vert->argb = color[3];
 				vert->flags = PVR_CMD_VERTEX;
 				pvr_dr_commit(vert);
@@ -374,6 +386,7 @@ void Level::draw() {
 				vert->x = vertexScreen[v7].x;
 				vert->y = vertexScreen[v7].y;
 				vert->z = vertexScreen[v7].z;
+				vert->u = 1; vert->v = 0;
 				vert->argb = color[3];
 				vert->flags = PVR_CMD_VERTEX_EOL;
 				pvr_dr_commit(vert);
@@ -383,6 +396,7 @@ void Level::draw() {
 				vert->x = vertexScreen[v3].x;
 				vert->y = vertexScreen[v3].y;
 				vert->z = vertexScreen[v3].z;
+				vert->u = 0; vert->v = 1;
 				vert->argb = color[4];
 				vert->flags = PVR_CMD_VERTEX;
 				pvr_dr_commit(vert);
@@ -391,6 +405,7 @@ void Level::draw() {
 				vert->x = vertexScreen[v1].x;
 				vert->y = vertexScreen[v1].y;
 				vert->z = vertexScreen[v1].z;
+				vert->u = 0; vert->v = 0;
 				vert->argb = color[4];
 				vert->flags = PVR_CMD_VERTEX;
 				pvr_dr_commit(vert);
@@ -399,6 +414,7 @@ void Level::draw() {
 				vert->x = vertexScreen[v7].x;
 				vert->y = vertexScreen[v7].y;
 				vert->z = vertexScreen[v7].z;
+				vert->u = 1; vert->v = 1;
 				vert->argb = color[4];
 				vert->flags = PVR_CMD_VERTEX;
 				pvr_dr_commit(vert);
@@ -407,6 +423,7 @@ void Level::draw() {
 				vert->x = vertexScreen[v5].x;
 				vert->y = vertexScreen[v5].y;
 				vert->z = vertexScreen[v5].z;
+				vert->u = 1; vert->v = 0;
 				vert->argb = color[4];
 				vert->flags = PVR_CMD_VERTEX_EOL;
 				pvr_dr_commit(vert);
@@ -416,6 +433,7 @@ void Level::draw() {
 				vert->x = vertexScreen[v5].x;
 				vert->y = vertexScreen[v5].y;
 				vert->z = vertexScreen[v5].z;
+				vert->u = 0; vert->v = 1;
 				vert->argb = color[0];
 				vert->flags = PVR_CMD_VERTEX;
 				pvr_dr_commit(vert);
@@ -424,6 +442,7 @@ void Level::draw() {
 				vert->x = vertexScreen[v6].x;
 				vert->y = vertexScreen[v6].y;
 				vert->z = vertexScreen[v6].z;
+				vert->u = 0; vert->v = 0;
 				vert->argb = color[0];
 				vert->flags = PVR_CMD_VERTEX;
 				pvr_dr_commit(vert);
@@ -432,6 +451,7 @@ void Level::draw() {
 				vert->x = vertexScreen[v7].x;
 				vert->y = vertexScreen[v7].y;
 				vert->z = vertexScreen[v7].z;
+				vert->u = 1; vert->v = 1;
 				vert->argb = color[0];
 				vert->flags = PVR_CMD_VERTEX;
 				pvr_dr_commit(vert);
@@ -440,11 +460,209 @@ void Level::draw() {
 				vert->x = vertexScreen[v8].x;
 				vert->y = vertexScreen[v8].y;
 				vert->z = vertexScreen[v8].z;
+				vert->u = 1; vert->v = 0;
 				vert->argb = color[0];
 				vert->flags = PVR_CMD_VERTEX_EOL;
 				pvr_dr_commit(vert);
+			} else if (levelData[pos] == HOLE) {
+				// todo: cull invisible stuff
+				int v5 = v1 - add;
+				int v6 = v2 - add;
+				int v7 = v3 - add;
+				int v8 = v4 - add;
+				if (vertexScreen[v5].z < 0 ||
+					vertexScreen[v6].z < 0 ||
+					vertexScreen[v7].z < 0 ||
+					vertexScreen[v8].z < 0
+				) {
+					continue;
+				}
 
+				// left
+				vert = pvr_dr_target(state);
+				vert->x = vertexScreen[v1].x;
+				vert->y = vertexScreen[v1].y;
+				vert->z = vertexScreen[v1].z;
+				vert->u = 0; vert->v = 1;
+				vert->argb = color[3];
+				vert->flags = PVR_CMD_VERTEX;
+				pvr_dr_commit(vert);
 
+				vert = pvr_dr_target(state);
+				vert->x = vertexScreen[v2].x;
+				vert->y = vertexScreen[v2].y;
+				vert->z = vertexScreen[v2].z;
+				vert->u = 0; vert->v = 0;
+				vert->argb = color[3];
+				vert->flags = PVR_CMD_VERTEX;
+				pvr_dr_commit(vert);
+
+				vert = pvr_dr_target(state);
+				vert->x = vertexScreen[v5].x;
+				vert->y = vertexScreen[v5].y;
+				vert->z = vertexScreen[v5].z;
+				vert->u = 1; vert->v = 1;
+				vert->argb = color[3];
+				vert->flags = PVR_CMD_VERTEX;
+				pvr_dr_commit(vert);
+
+				vert = pvr_dr_target(state);
+				vert->x = vertexScreen[v6].x;
+				vert->y = vertexScreen[v6].y;
+				vert->z = vertexScreen[v6].z;
+				vert->u = 1; vert->v = 0;
+				vert->argb = color[3];
+				vert->flags = PVR_CMD_VERTEX_EOL;
+				pvr_dr_commit(vert);
+
+				// front
+				vert = pvr_dr_target(state);
+				vert->x = vertexScreen[v2].x;
+				vert->y = vertexScreen[v2].y;
+				vert->z = vertexScreen[v2].z;
+				vert->u = 0; vert->v = 1;
+				vert->argb = color[4];
+				vert->flags = PVR_CMD_VERTEX;
+				pvr_dr_commit(vert);
+
+				vert = pvr_dr_target(state);
+				vert->x = vertexScreen[v4].x;
+				vert->y = vertexScreen[v4].y;
+				vert->z = vertexScreen[v4].z;
+				vert->u = 0; vert->v = 0;
+				vert->argb = color[4];
+				vert->flags = PVR_CMD_VERTEX;
+				pvr_dr_commit(vert);
+
+				vert = pvr_dr_target(state);
+				vert->x = vertexScreen[v6].x;
+				vert->y = vertexScreen[v6].y;
+				vert->z = vertexScreen[v6].z;
+				vert->u = 1; vert->v = 1;
+				vert->argb = color[4];
+				vert->flags = PVR_CMD_VERTEX;
+				pvr_dr_commit(vert);
+
+				vert = pvr_dr_target(state);
+				vert->x = vertexScreen[v8].x;
+				vert->y = vertexScreen[v8].y;
+				vert->z = vertexScreen[v8].z;
+				vert->u = 1; vert->v = 0;
+				vert->argb = color[4];
+				vert->flags = PVR_CMD_VERTEX_EOL;
+				pvr_dr_commit(vert);
+
+				// right
+				vert = pvr_dr_target(state);
+				vert->x = vertexScreen[v4].x;
+				vert->y = vertexScreen[v4].y;
+				vert->z = vertexScreen[v4].z;
+				vert->u = 0; vert->v = 1;
+				vert->argb = color[1];
+				vert->flags = PVR_CMD_VERTEX;
+				pvr_dr_commit(vert);
+
+				vert = pvr_dr_target(state);
+				vert->x = vertexScreen[v3].x;
+				vert->y = vertexScreen[v3].y;
+				vert->z = vertexScreen[v3].z;
+				vert->u = 0; vert->v = 0;
+				vert->argb = color[1];
+				vert->flags = PVR_CMD_VERTEX;
+				pvr_dr_commit(vert);
+
+				vert = pvr_dr_target(state);
+				vert->x = vertexScreen[v8].x;
+				vert->y = vertexScreen[v8].y;
+				vert->z = vertexScreen[v8].z;
+				vert->u = 1; vert->v = 1;
+				vert->argb = color[1];
+				vert->flags = PVR_CMD_VERTEX;
+				pvr_dr_commit(vert);
+
+				vert = pvr_dr_target(state);
+				vert->x = vertexScreen[v7].x;
+				vert->y = vertexScreen[v7].y;
+				vert->z = vertexScreen[v7].z;
+				vert->u = 1; vert->v = 0;
+				vert->argb = color[1];
+				vert->flags = PVR_CMD_VERTEX_EOL;
+				pvr_dr_commit(vert);
+
+				// back
+				vert = pvr_dr_target(state);
+				vert->x = vertexScreen[v3].x;
+				vert->y = vertexScreen[v3].y;
+				vert->z = vertexScreen[v3].z;
+				vert->u = 0; vert->v = 1;
+				vert->argb = color[2];
+				vert->flags = PVR_CMD_VERTEX;
+				pvr_dr_commit(vert);
+
+				vert = pvr_dr_target(state);
+				vert->x = vertexScreen[v1].x;
+				vert->y = vertexScreen[v1].y;
+				vert->z = vertexScreen[v1].z;
+				vert->u = 0; vert->v = 0;
+				vert->argb = color[2];
+				vert->flags = PVR_CMD_VERTEX;
+				pvr_dr_commit(vert);
+
+				vert = pvr_dr_target(state);
+				vert->x = vertexScreen[v7].x;
+				vert->y = vertexScreen[v7].y;
+				vert->z = vertexScreen[v7].z;
+				vert->u = 1; vert->v = 1;
+				vert->argb = color[2];
+				vert->flags = PVR_CMD_VERTEX;
+				pvr_dr_commit(vert);
+
+				vert = pvr_dr_target(state);
+				vert->x = vertexScreen[v5].x;
+				vert->y = vertexScreen[v5].y;
+				vert->z = vertexScreen[v5].z;
+				vert->u = 1; vert->v = 0;
+				vert->argb = color[2];
+				vert->flags = PVR_CMD_VERTEX_EOL;
+				pvr_dr_commit(vert);
+/*
+				// top
+				vert = pvr_dr_target(state);
+				vert->x = vertexScreen[v5].x;
+				vert->y = vertexScreen[v5].y;
+				vert->z = vertexScreen[v5].z;
+				vert->u = 0; vert->v = 1;
+				vert->argb = color[0];
+				vert->flags = PVR_CMD_VERTEX;
+				pvr_dr_commit(vert);
+
+				vert = pvr_dr_target(state);
+				vert->x = vertexScreen[v6].x;
+				vert->y = vertexScreen[v6].y;
+				vert->z = vertexScreen[v6].z;
+				vert->u = 0; vert->v = 0;
+				vert->argb = color[0];
+				vert->flags = PVR_CMD_VERTEX;
+				pvr_dr_commit(vert);
+
+				vert = pvr_dr_target(state);
+				vert->x = vertexScreen[v7].x;
+				vert->y = vertexScreen[v7].y;
+				vert->z = vertexScreen[v7].z;
+				vert->u = 1; vert->v = 1;
+				vert->argb = color[0];
+				vert->flags = PVR_CMD_VERTEX;
+				pvr_dr_commit(vert);
+
+				vert = pvr_dr_target(state);
+				vert->x = vertexScreen[v8].x;
+				vert->y = vertexScreen[v8].y;
+				vert->z = vertexScreen[v8].z;
+				vert->u = 1; vert->v = 0;
+				vert->argb = color[0];
+				vert->flags = PVR_CMD_VERTEX_EOL;
+				pvr_dr_commit(vert);
+*/
 			} else {
 				// draw normal (flat)
 				vert = pvr_dr_target(state);
