@@ -4,6 +4,8 @@
 
 #include <q3d.h>
 
+#include "player.h"
+
 q3dTypePolyhedron *generateTorus(int n, double r) {
 	q3dTypePolyhedron *cube = (q3dTypePolyhedron*) malloc(sizeof(q3dTypePolyhedron));
 	q3dPolyhedronInit(cube);
@@ -73,7 +75,154 @@ q3dTypePolyhedron *generateTorus(int n, double r) {
 
 	return cube;
 }
+q3dTypePolyhedron *generateSphere() {
+	q3dTypePolyhedron *sphere = (q3dTypePolyhedron*) malloc(sizeof(q3dTypePolyhedron));
+	q3dPolyhedronInit(sphere);
 
+	int nRings = 6;
+	int nSegments = 6;
+
+	sphere->vertexLength = ( nRings + 1 ) * ( nSegments + 1 );
+	sphere->vertex = (q3dTypeVertex*) malloc(sphere->vertexLength * sizeof(q3dTypeVertex));
+
+	sphere->polygonLength = 1;
+	sphere->polygon = (q3dTypePolygon*) malloc(sphere->polygonLength * sizeof(q3dTypePolyhedron));
+
+	q3dPolygonInit(&sphere->polygon[0]);
+	sphere->polygon[0].vertexLength = 2 * nRings * ( nSegments + 1 ) ;;
+	sphere->polygon[0].vertex = (uint16*) malloc(sphere->polygon[0].vertexLength * sizeof(uint16));
+
+	q3dPolyhedronCompile(sphere);
+
+	// Establish constants used in sphere generation
+	float fDeltaRingAngle = ( F_PI / nRings );
+	float fDeltaSegAngle = ( 2.0f * F_PI / nSegments );
+
+	uint16 wVerticeIndex = 0 ;
+	uint16 pos = 0;
+	uint16 pos2 = 0;
+	// Generate the group of rings for the sphere
+	for( int ring = 0; ring < nRings + 1 ; ring++ )
+	{
+		float r0 = fsin( ring * fDeltaRingAngle );
+		float y0 = fcos( ring * fDeltaRingAngle );
+
+
+		if ( ring != nRings ) {
+		}
+
+		// Generate the group of segments for the current ring
+		for( int seg = 0; seg < nSegments + 1 ; seg++ )
+		{
+			float x0 = r0 * fsin( seg * fDeltaSegAngle );
+			float z0 = r0 * fcos( seg * fDeltaSegAngle );
+
+			// Add one vertices to the strip which makes up the sphere
+			q3dVertexSet3f(&sphere->vertex[pos], x0, -y0, z0);
+			q3dVectorSetV(&sphere->_uVertexNormal[pos], &sphere->vertex[pos]);
+			q3dVectorNormalize(&sphere->_uVertexNormal[pos]);
+			pos++;
+//			pVertex->n = pVertex->p ; 
+//			pVertex->color = 0xffffffff ; 
+//			pVertex->tu = (float) seg / (float) nSegments;
+//			pVertex->tv = (float) ring / (float) nRings;
+
+
+			// add two indices except for last ring 
+			if ( ring != nRings ) 
+			{
+				sphere->polygon[0].vertex[pos2] = wVerticeIndex ;
+				pos2++;
+				sphere->polygon[0].vertex[pos2] = wVerticeIndex + ( nSegments + 1 ) ; 
+				pos2++;
+				wVerticeIndex ++ ; 
+			}
+
+		} // end for seg 
+
+	} // end for ring
+	return sphere;
+}
+
+/*q3dTypePolyhedron *generateSphere() {
+	q3dTypePolyhedron *sphere = (q3dTypePolyhedron*) malloc(sizeof(q3dTypePolyhedron));
+	q3dPolyhedronInit(sphere);
+
+	int nRings = 2;
+	int nSegments = 6;
+
+	sphere->vertexLength = ( nRings + 1 ) * ( nSegments + 1 );
+	sphere->vertex = (q3dTypeVertex*) malloc(sphere->vertexLength * sizeof(q3dTypeVertex));
+
+	sphere->polygonLength = nRings;
+	sphere->polygon = (q3dTypePolygon*) malloc(sphere->polygonLength * sizeof(q3dTypePolyhedron));
+
+	// first create the finalVertices
+	sphere->_finalVertex	= (pvr_vertex_t*) malloc(sizeof(pvr_vertex_t) * sphere->vertexLength);
+
+	// then calculate polygonnormals and vertex normals
+	sphere->_uPolygonNormal	= (q3dTypeVector*) malloc(sizeof(q3dTypeVector) * sphere->polygonLength);
+	sphere->_polygonNormal	= (q3dTypeVector*) malloc(sizeof(q3dTypeVector) * sphere->polygonLength);
+
+	sphere->_uVertexNormal	= (q3dTypeVector*) malloc(sizeof(q3dTypeVector) * sphere->vertexLength);
+	sphere->_vertexNormal	= (q3dTypeVector*) malloc(sizeof(q3dTypeVector) * sphere->vertexLength);
+
+//	q3dPolyhedronCompile(sphere);
+
+	// Establish constants used in sphere generation
+	float fDeltaRingAngle = ( F_PI / nRings );
+	float fDeltaSegAngle = ( 2.0f * F_PI / nSegments );
+
+	uint16 wVerticeIndex = 0 ;
+	uint16 pos = 0;
+	uint16 pos2 = 0;
+	// Generate the group of rings for the sphere
+	for( int ring = 0; ring < nRings + 1 ; ring++ )
+	{
+		float r0 = fsin( ring * fDeltaRingAngle );
+		float y0 = fcos( ring * fDeltaRingAngle );
+
+		int pos2 = 0;
+
+		if ( ring != nRings ) {
+			q3dPolygonInit(&sphere->polygon[ring]);
+			sphere->polygon[ring].vertexLength = 2 * ( nSegments + 1 ) ;;
+			sphere->polygon[ring].vertex = (uint16*) malloc(sphere->polygon[ring].vertexLength * sizeof(uint16));
+		}
+
+		// Generate the group of segments for the current ring
+		for( int seg = 0; seg < nSegments + 1 ; seg++ )
+		{
+			float x0 = r0 * fsin( seg * fDeltaSegAngle );
+			float z0 = r0 * fcos( seg * fDeltaSegAngle );
+
+			// Add one vertices to the strip which makes up the sphere
+			q3dVertexSet3f(&sphere->vertex[pos], x0, -y0, z0);
+			q3dVectorSet3f(&sphere->_uVertexNormal[pos], x0,-y0,z0);
+			q3dVectorNormalize(&sphere->_uVertexNormal[pos]);
+			pos++;
+//			pVertex->n = pVertex->p ; 
+//			pVertex->color = 0xffffffff ; 
+//			pVertex->tu = (float) seg / (float) nSegments;
+//			pVertex->tv = (float) ring / (float) nRings;
+
+
+			// add two indices except for last ring 
+			if ( ring != nRings ) 
+			{
+				sphere->polygon[ring].vertex[pos2] = wVerticeIndex ;
+				pos2++;
+				sphere->polygon[ring].vertex[pos2] = wVerticeIndex + ( nSegments + 1 ) ; 
+				pos2++;
+				wVerticeIndex ++ ; 
+			}
+
+		} // end for seg 
+
+	} // end for ring
+	return sphere;
+}
+*/
 q3dTypePolyhedron *generateCube() {
 	q3dTypePolyhedron *cube = (q3dTypePolyhedron*) malloc(sizeof(q3dTypePolyhedron));
 	q3dPolyhedronInit(cube);
@@ -258,10 +407,9 @@ pvr_poly_cxt_t loadImage(char *name) {
 
 	return cxt;
 }
-
+extern "C" int snd_init();
+q3dTypePolyhedron *sphere;
 int main(int argc, char **argv) {
-	uint8 c;
-	cont_cond_t cond;
 	q3dTypePolyhedron *cube2;
 	q3dTypeCamera cam;
 	q3dTypeFiller fillerStandard;
@@ -273,7 +421,10 @@ int main(int argc, char **argv) {
 
 	printf("generate cube\n");
 //	cube2 = generateTorus(20, 2);
-	cube2 = generateCube();
+	cube2 = generateSphere();
+//	cube2 = generateCube();
+	sphere = cube2;
+	q3dPolyhedronCompile(cube2);
 
 	q3dMatrixInit();
 	q3dFillerStandardInit(&fillerStandard);
@@ -282,11 +433,12 @@ int main(int argc, char **argv) {
 	pvr_set_bg_color(1.0f, 1.0f, 1.0f);
 
 
-	printf("compile\n");
-	q3dPolyhedronCompile(cube2);
 	cube2->material.header = fillerStandard.defaultHeader;
 
-	cam._pos.z = 15;
+	fillerCell.defaultCxt.gen.culling = PVR_CULLING_CCW;
+	pvr_poly_compile(&fillerCell.defaultHeader, &fillerCell.defaultCxt);
+
+	cam._pos.z = 5;
 
 	// Get basic stuff initialized
 
@@ -296,110 +448,39 @@ int main(int argc, char **argv) {
 	printf("enabled: %d\n", timer_ints_enabled(TMU0));
 	printf("set handler: %d\n", irq_set_handler(TIMER_IRQ, &handle_time));
 
+//	snd_init();
+//	sfxhnd_t bounce = snd_sfx_load("/pc/tmp/bounce.wav");
+//	snd_sfx_play(bounce, 15, 15);
 	qtime = 0;
-	q3dTypeAngle agl;
-	q3dAngleInit(&agl);
 
-	q3dTypeVector dir;
-	q3dVectorInit(&dir);
-
-	q3dTypeVector rot;
-	q3dVectorInit(&rot);
-
-	float rotation = 0;
-	bool jump = false;
-	int jumpstart = 0;
-	bool jumpok = true;
+	Player p1(0,0);
+	Player p2(1,0);
 
 	int done = 0;
 	while(!done) {
 		MAPLE_FOREACH_BEGIN(MAPLE_FUNC_CONTROLLER, cont_state_t, st)
 			if (st->buttons & CONT_START) {
 				printf("Controller %d pressed start\n", __dev->port);
+				printf("port: %d\nunit: %d\n", __dev->port, __dev->unit);
 				done = true;
 			}
 		MAPLE_FOREACH_END();
-		maple_device_t *dev = maple_enum_dev(0, 0);
-		if (dev) {
-			cont_state_t* s = (cont_state_t*) maple_dev_status(dev);
-			float cx = s->joyx / 4096.0f;
-			float cy = s->joyy / 4096.0f;
 
-			if (jumpok && s->buttons & CONT_A) {
-				jump = true;
-				if ((qtime - jumpstart) > 250) {
-					jumpok = false;
-				}
-//			} else if (qtime - jumpstart > 20) {
-//				jump = 0.001f * (qtime - jumpstart);
-//				jumpstart = qtime;
-			} else {
-				if (jump) {
-					jump = false;
-					jumpok = false;
-				}
-				jumpstart = qtime;
-			}
-
-//			cube2->_pos.x += cx;
-//			cube2->_pos.z += cy;
-
-//			rotation += cx / 30.0f;
-//			rot.x = fcos(rotation);
-//			rot.z = fsin(rotation);
-
-			// update position
-			// TODO: collosion check 
-//			if (player->controller.y < 0) player->controller.y = 0;
-			dir.x += cx;
-			dir.z += cy;
-			dir.x = dir.x < -2 ? -2 : dir.x > 2 ? 2 : dir.x;
-			dir.z = dir.z < -2 ? -2 : dir.z > 2 ? 2 : dir.z;
-
-			dir.x *= 0.97f;
-			dir.z *= 0.97f;
-
-			
-
-//			if (dir.y < 0) {
-			if (!jumpok || !jump) {
-				dir.y += 0.1f;
-			} else if (jump) {
-				cube2->_pos.y -= 0.5f;
-				printf("jump\n");
-			}
-//			}
-
-
-			cube2->_pos.x += dir.x;
-			cube2->_pos.z += dir.z;
-			cube2->_pos.y += dir.y;
-
-			if (cube2->_pos.y > 0) {
-				cube2->_pos.y = 0;
-				dir.y = -dir.y * 0.75;
-//				if (fabs(dir.y) < 0.1) jumpok = true;
-			}
-			if (cube2->_pos.y > -1) jumpok = true;
-			else if (!jump) jumpok = false;
-		}
-
-
-		cube2->_agl.z -= dir.x * 0.25;
-		cube2->_agl.x += dir.z * 0.25;
-
-//		agl.y = qtime/1000.0f;
-		q3dCameraSetRotation(&cam, &agl);
 
 		// begin render with TA
 		pvr_scene_begin();
 
 		pvr_list_begin(PVR_LIST_OP_POLY);
 
-//		cube2->_pos.x = fsin((2/5.0f)*2*F_PI) * 8;
-//		cube2->_pos.y = fcos((2/5.0f)*2*F_PI) * 8;
+		p1.update();
+		cube2->_agl.x = cube2->_agl.y = cube2->_agl.z  = 0;
 		cube2->material.header = fillerCell.defaultHeader;
-		q3dColorSet3f(&cube2->material.color, 1.0f, 0.5f, 0.25f);
+		q3dColorSet3f(&cube2->material.color, 0.5f, 0.5f, 0.75f);
+		q3dPolyhedronPaint(cube2, &cam, &fillerCell);
+
+		p2.update();
+		cube2->material.header = fillerCell.defaultHeader;
+		q3dColorSet3f(&cube2->material.color, 1.0f, 0.5f, 0.5f);
 		q3dPolyhedronPaint(cube2, &cam, &fillerCell);
 
 		pvr_list_finish();
