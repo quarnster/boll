@@ -36,6 +36,10 @@ void Point3D::set(float x2, float y2, float z2) {
 	z = z2;
 }
 
+float Point3D::dot(const Point3D &p) {
+	return x * p.x + y * p.y + z * p.z;
+}
+
 void Point3D::operator=(const Point3D &p) {
 	x = p.x;
 	y = p.y;
