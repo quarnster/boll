@@ -10,6 +10,7 @@ public:
 	void update();
 
 	q3dTypeVertex position;
+	q3dTypeVertex rotation;
 	q3dTypeVertex direction;
 
 private:
