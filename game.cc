@@ -43,7 +43,7 @@ static q3dTypePolyhedron *generateSphere() {
 			float z0 = r0 * fcos( seg * fDeltaSegAngle );
 
 			// Add one vertices to the strip which makes up the sphere
-			q3dVertexSet3f(&sphere->vertex[pos], x0, -y0, z0);
+			q3dVertexSet3f(&sphere->vertex[pos], x0, -y0, -z0);
 			q3dVectorSetV(&sphere->_uVertexNormal[pos], &sphere->vertex[pos]);
 //			q3dVectorNormalize(&sphere->_uVertexNormal[pos]);
 			pos++;
@@ -79,6 +79,8 @@ q3dTypeMatrix screen_matrix __attribute__((aligned(32))) = {
     { 0.0f, 0.0f, 0.0f, 1.0f }
 };
 
+sfxhnd_t sounds[SOUND_NUM];
+
 Game::Game() {
 	q3dMatrixInit();
 
@@ -95,9 +97,14 @@ Game::Game() {
 	cam._pos.y = -5;
 	cam._pos.z = 5;
 
+	player = new Player[4];
 	for (int i = 0; i < 4; i++)
 		player[i].setController(i);
 
+	player[0].position.set( 0,  0,  +2);
+	player[1].position.set( 0, -10, +2);
+	player[2].position.set(-2, -2, -2);
+	player[3].position.set(+2, -2, -2);
 
 	pvr_poly_cxt_t cxt;
 	pvr_poly_cxt_col(
@@ -106,16 +113,22 @@ Game::Game() {
 	);
 
 	pvr_poly_compile(&crossHeader, &cxt);
+
+	// load sounds
+	sounds[BOUNCE] = snd_sfx_load("bounce.wav");
+	sounds[BOUNCE2] = snd_sfx_load("bounce2.wav");
+	sounds[JUMP] = snd_sfx_load("jump.wav");
 }
 
 Game::~Game() {
 	q3dPolyhedronFree(sphere);
 	free(sphere);
+	delete[] player;
 }
 
 void Game::update() {
 	for (int i = 0; i < 4; i++)
-		player[i].update();
+		player[i].update(this);
 
 	level.update();
 }

@@ -6,6 +6,17 @@
 #include "player.h"
 #include "level.h"
 
+enum {
+	BOUNCE = 0,
+	BOUNCE2,
+	JUMP,
+	SOUND_NUM
+};
+
+extern sfxhnd_t sounds[];
+
+class Player;
+
 class Game {
 public:
 	Game();
@@ -14,9 +25,9 @@ public:
 	void update();
 	void draw();
 
+	Player	*player;
 private:
 	q3dTypeCamera cam;
-	Player	player[4];
 	Level	level;
 
 	pvr_poly_hdr_t	crossHeader;
