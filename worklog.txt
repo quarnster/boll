@@ -26,3 +26,12 @@ wrote a sphere generator.
 multiple spheres on the screen at the same time all controllable with different controllers.
 had lots of ideas for a level-generator
 read up on collusion detection and got some good ideas
+
+
+
+Monday, January 26
+
+Apparantly the dreamcast does not clip in z.. I'll have to implement some sort of clipping for that.
+Thought a lot about how levels should be created and drawed to the screen.
+messed around trying to get the spu-stuff to work but still no luck :(
+wrote a looooooong todo-list... jikes :)
