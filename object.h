@@ -2,6 +2,7 @@
 #define __INCLUDED_OBJECT_H
 
 #include <q3d.h>
+#include "lib/Point3D.h"
 
 class Object {
 public:
@@ -9,9 +10,9 @@ public:
 
 	void update();
 
-	q3dTypeVertex position;
-	q3dTypeVertex rotation;
-	q3dTypeVertex direction;
+	Point3D		position;
+	Point3D		rotation;
+	Point3D		direction;
 
 private:
 };

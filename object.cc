@@ -1,9 +1,6 @@
 #include "object.h"
 
 Object::Object() {
-	q3dVertexInit(&position);
-	q3dVertexInit(&rotation);
-	q3dVertexInit(&direction);
 }
 
 void Object::update() {
