@@ -4,11 +4,11 @@
 #include <q3d.h>
 #include "object.h"
 
-class ScoreObject : Object {
+class ScoreObject : public Object {
 public:
 	ScoreObject();
 
-	void update(Game game);
+	void update(Game *game);
 	void draw();
 
 private:
