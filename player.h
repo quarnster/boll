@@ -31,6 +31,9 @@ private:
 	int jumpstart;
 	bool jumpplay;
 
+	int thrusttime;
+	bool thrusting;
+
 	int dietime;
 
 	bool bice;
