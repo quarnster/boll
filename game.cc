@@ -1,4 +1,5 @@
 #include <string.h>
+#include <stdlib.h>
 #include "game.h"
 #include "lib/primitives.h"
 
@@ -26,14 +27,19 @@ q3dTypeMatrix screen_matrix __attribute__((aligned(32))) = {
 };
 
 Game::Game() {
+	soundtrack = INGAMETRACK1;
 	gameended = false;
 
 	q3dMatrixInit();
 
-	sphere = generateSphere(6, 6);
+	sphere = generateSphere(10, 10);
 	scorePolyhedron = generateSphere(3, 3);
 
-	q3dFillerCellInit(&fillerPlayers);
+	q3dPolyhedronCompile(sphere);
+	q3dPolyhedronCompile(scorePolyhedron);
+
+	q3dFillerTextureInit(&fillerPlayers);
+	fillerPlayers.defaultCxt = loadImage("player.png", PVR_LIST_OP_POLY);
 	fillerPlayers.defaultCxt.gen.clip_mode = PVR_USERCLIP_INSIDE;
 	fillerPlayers.defaultCxt.gen.fog_type = PVR_FOG_TABLE;
 	pvr_poly_compile(&fillerPlayers.defaultHeader, &fillerPlayers.defaultCxt);
@@ -107,6 +113,11 @@ void Game::reset() {
 	player[2].position.set(-2,  2, -2);
 	player[3].position.set(+2,  2, -2);
 
+	soundtrack++;
+	if (soundtrack >= INGAMETRACK1 + INGAMETRACKNUM)
+		soundtrack = INGAMETRACK1;
+
+	cddaPlay(soundtrack);
 }
 
 //extern bool done;
@@ -115,8 +126,9 @@ void Game::run() {
 	while (!done /*&& (gametime < 60 * 1000 * GAMELENGTH)*/) {
 		// TODO: check for exit.. ?
 		gametime = timer_ms_gettime64() - gamestart;
-		if (gametime >= 60 * 1000 * GAMELENGTH) {
+		if (!gameended && gametime >= 60 * 1000 * GAMELENGTH) {
 			gameended = true;
+			cddaPlay(SCORETRACK);
 		}
 
 		update();
@@ -338,9 +350,9 @@ void Game::draw() {
 	sprintf(buf, "%d", player[2].score);
 	plx_fcxt_draw(fcxt, buf);
 
-	float sec = gametime - (GAMELENGTH * 1000 * 60 - 10 * 1000);
-	sec /= 1000.0f;
-	if (sec > 0 && sec <= 11) {
+	long lsec = (gametime - (GAMELENGTH * 1000 * 60 - 10 * 1000));
+	float sec = lsec / 1000.0f;
+	if (sec > 0 && sec < 11) {
 		int sec2 = (int) sec;
 		w.x = 320-32;
 		w.y = 240;

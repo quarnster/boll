@@ -27,6 +27,7 @@ int MainMenu::showMenu() {
 	int choice = 0;
 	uint32 last = 0;
 
+	cddaPlay(MENUTRACK);
 	plx_fcxt_setsize(fcxt, fontSize);
 	maple_device_t *dev = maple_enum_dev(0, 0);
 	if (dev != NULL && dev->info.functions & MAPLE_FUNC_CONTROLLER) {

@@ -34,6 +34,7 @@ private:
 	pvr_poly_hdr_t	fadeHeader;
 //	Object	*objects;
 	uint64	gamestart;
+	uint32	soundtrack;
 	bool done;
 };
 
