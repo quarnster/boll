@@ -49,7 +49,7 @@ Game::Game() {
 	pvr_poly_compile(&fillerPlayers.defaultHeader, &fillerPlayers.defaultCxt);
 
 	q3dFillerTextureInit(&fillerLevel);
-	fillerLevel.defaultCxt = loadImage("buzz.png", PVR_LIST_OP_POLY);
+	fillerLevel.defaultCxt = loadImage("ground.png", PVR_LIST_OP_POLY);
 	fillerLevel.defaultCxt.gen.clip_mode = PVR_USERCLIP_INSIDE;
 	fillerLevel.defaultCxt.gen.fog_type = PVR_FOG_TABLE;
 	pvr_poly_compile(&fillerLevel.defaultHeader, &fillerLevel.defaultCxt);
@@ -112,6 +112,7 @@ Game::~Game() {
 extern bool done2;
 extern uint32 gametime;
 void Game::reset() {
+	frame = 0;
 	endtrack = false;
 	done = false;
 	gamestart = timer_ms_gettime64();
@@ -154,6 +155,7 @@ void Game::run() {
 
 		update();
 		draw();
+		frame++;
 	}
 }
 
@@ -235,7 +237,7 @@ void Game::draw() {
 			mat_trans_single3(vert.x, vert.y, vert.z);
 			if (vert.z < 3)
 				continue;
-			if (vert.z > 100)
+			if (vert.z > 150)
 				continue;
 			if (vert.x > vert.z + 4)
 				continue;
@@ -416,7 +418,7 @@ void Game::draw() {
 				win = i;
 			}
 		}
-		w.x = 180;
+		w.x = 180-4;
 		w.y = 240;
 		w.z = 1001;
 
@@ -428,8 +430,8 @@ void Game::draw() {
 		if (alpha > 0.75) alpha = 0.75;
 		else if (alpha < 0) alpha = 0;
 
-		w.x = 20;
-		w.y += 64;
+		w.x = 30;
+//		w.y += 64;
 		plx_fcxt_setcolor4f(fcxt, alpha, 1.0, 1.0, 1.0);
 		plx_fcxt_setsize(fcxt, 64);
 		plx_fcxt_setpos_pnt(fcxt, &w);
@@ -478,7 +480,7 @@ void Game::draw() {
 		plx_fcxt_end(fcxt);
 	}
 
-	if (sec > 14) {
+	if (sec > 22) {
 		MAPLE_FOREACH_BEGIN(MAPLE_FUNC_CONTROLLER, cont_state_t, st)
 			if (st->buttons & CONT_START || st->buttons & CONT_A) {
 				done = true;
