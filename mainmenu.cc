@@ -1,8 +1,6 @@
 #include <kos.h>
 #include "mainmenu.h"
 
-extern plx_fcxt_t *fcxt;
-
 #define LINENUM 4
 static int width[LINENUM];
 
@@ -15,11 +13,6 @@ static char menu_text[LINENUM][45] = {
 };
 
 MainMenu::MainMenu() {
-//	fnt = plx_font_load("font.txf");
-//	fcxt = plx_fcxt_create(fnt, PVR_LIST_TR_POLY);
-//	plx_fcxt_setcolor4f(fcxt, 1, 1, 1, 1);
-	
-
 	for (int i = 0; i < LINENUM; i++) {
 		float l, u, d, r;
 		plx_fcxt_str_metrics(fcxt, menu_text[i], &l, &u, &r, &d);
@@ -28,8 +21,6 @@ MainMenu::MainMenu() {
 }
 
 MainMenu::~MainMenu() {
-//	plx_fcxt_destroy(fcxt);
-//	plx_font_destroy(fnt);
 }
 
 int MainMenu::showMenu() {
@@ -37,19 +28,29 @@ int MainMenu::showMenu() {
 	uint32 last = 0;
 
 	plx_fcxt_setsize(fcxt, fontSize);
+	maple_device_t *dev = maple_enum_dev(0, 0);
+	if (dev != NULL && dev->info.functions & MAPLE_FUNC_CONTROLLER) {
+		cont_state_t* st = (cont_state_t*) maple_dev_status(dev);
+		last = st->buttons;
+	}
 
 	// TODO: play the right cd-track
 	while (true) {
-		maple_device_t *dev = maple_enum_dev(0, 0);
+		dev = maple_enum_dev(0, 0);
 		if (dev != NULL && dev->info.functions & MAPLE_FUNC_CONTROLLER) {
 			cont_state_t* st = (cont_state_t*) maple_dev_status(dev);
-			if (st->buttons & CONT_START || st->buttons & CONT_A) {
-				return choice;
-			}
-			if ((st->buttons & CONT_DPAD_UP) && (last & CONT_DPAD_UP) == 0 && choice != 0) {
-				choice--;
-			} else if ((st->buttons & CONT_DPAD_DOWN)  && (last & CONT_DPAD_DOWN) == 0 && choice != (LINENUM-1)) {
-				choice++;
+			if (st->buttons != last) {
+				if (st->buttons & CONT_START || st->buttons & CONT_A) {
+					snd_sfx_play(sounds[MENU_SELECT], 255, 128);
+					return choice;
+				}
+				if (st->buttons & CONT_DPAD_UP && choice != 0) {
+					choice--;
+					snd_sfx_play(sounds[MENU_CHANGE], 255, 128);
+				} else if (st->buttons & CONT_DPAD_DOWN && choice != (LINENUM-1)) {
+					choice++;
+					snd_sfx_play(sounds[MENU_CHANGE], 255, 128);
+				}
 			}
 			last = st->buttons;
 		}
