@@ -31,9 +31,10 @@ Game::Game() {
 	q3dMatrixInit();
 
 	sphere = generateSphere();
-	q3dFillerCellInit(&fillerPlayers);
-	fillerPlayers.defaultCxt.gen.clip_mode = PVR_USERCLIP_INSIDE;
-	fillerPlayers.defaultCxt.gen.fog_type = PVR_FOG_TABLE;
+//	q3dFillerCellInit(&fillerPlayers);
+	q3dFillerStandardInit(&fillerPlayers);
+//	fillerPlayers.defaultCxt.gen.clip_mode = PVR_USERCLIP_INSIDE;
+//	fillerPlayers.defaultCxt.gen.fog_type = PVR_FOG_TABLE;
 	pvr_poly_compile(&fillerPlayers.defaultHeader, &fillerPlayers.defaultCxt);
 
 	q3dFillerStandardInit(&fillerLevel);
@@ -43,17 +44,17 @@ Game::Game() {
 	pvr_poly_compile(&fillerLevel.defaultHeader, &fillerLevel.defaultCxt);
 
 	q3dCameraInit(&cam);
-	cam._pos.y = -5;
-	cam._pos.z = 5;
+	cam._pos.y = 5;
+	cam._pos.z = -5;
 
 	player = new Player[4];
 	for (int i = 0; i < 4; i++)
 		player[i].setController(i);
 
 	player[0].position.set( 0,  0,  +2);
-	player[1].position.set( 0, -10, +2);
-	player[2].position.set(-2, -2, -2);
-	player[3].position.set(+2, -2, -2);
+	player[1].position.set( 0,  10, +2);
+	player[2].position.set(-2,  2, -2);
+	player[3].position.set(+2,  2, -2);
 
 	pvr_poly_cxt_t cxt;
 	pvr_poly_cxt_col(
@@ -80,9 +81,22 @@ Game::Game() {
 }
 
 Game::~Game() {
+	printf("free sphere: ...");
 	q3dPolyhedronFree(sphere);
+	printf("done!\nfree sphere2: ...");
 	free(sphere);
+	printf("done!\ndelete[] player: ...");
 	delete[] player;
+	printf("done!\n");
+}
+
+extern bool done;
+void Game::run() {
+	while (!done/*true*/) {
+		// TODO: check for exit.. ?
+		update();
+		draw();
+	}
 }
 
 void Game::update() {
@@ -112,7 +126,7 @@ void Game::draw() {
 	// draw..
 	for (int i = 0; i < 4; i++) {
 		q3dMatrixIdentity();
-		q3dMatrixTranslate(0,8,-10);
+		q3dMatrixTranslate(0,-8,10);
 		q3dMatrixRotateY(player[i].rotation.y);
 		q3dMatrixTranslate(-player[i].position.x, 0/*-player[i].position.y*/,-player[i].position.z);
 
@@ -163,7 +177,7 @@ void Game::draw() {
 		q3dMatrixIdentity();
 		q3dMatrixRotateY(player[i].rotation.y);
 		q3dMatrixStore(&_q3dMatrixTemp);
-		if (i == 1) {
+		if (i == 0) {
 			level.draw();
 		}
 	}
