@@ -200,3 +200,34 @@ Friday, March 12
 
 Cdda is now playing for everything.
 
+
+
+Saturday, March 13
+
+Quaternions now also used for camera. Added basic powerup stuff.
+Changed gameplay to "kull".
+
+
+
+Sunday, March 14
+
+Added a tunnel to the background of the menu. Flat shade level.
+Score counts up much slower. New textures. Planes in the backround
+in the credits-scene.
+
+
+
+Tuesday, March 16
+
+Added "watch out" game mode. Added lots of new sounds I got from Andreas.
+Added Andreas endscroll text. Fixed the credits text. Lots of small fixes
+and tunes.
+
+
+
+Wednesday, March 17
+
+Made burning-script, successfully burned a disc, rared everything up and
+sumbitted! \o/ horrraayyyy!! \o/
+
+

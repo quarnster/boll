@@ -29,7 +29,7 @@ all: rm-elf $(TARGET)
 include $(KOS_BASE)/Makefile.rules
 ADD_INCS = -I/home/quarn/code/dreamcast/libq3d/include
 
-KOS_CFLAGS += -DBETA $(ADD_INCS)
+KOS_CFLAGS += -DFINAL $(ADD_INCS)
 
 depend:
 	echo "" > Makefile.dep
@@ -51,6 +51,9 @@ run: $(TARGET)
 dist:
 	rm -f $(OBJS) romdisk.o romdisk.img
 	$(KOS_STRIP)  $(TARGET)
+	sh-elf-objcopy -O binary $(TARGET) $(TARGET).bin
+	scramble $(TARGET).bin 1ST_READ.BIN
+
 
 include Makefile.dep
 

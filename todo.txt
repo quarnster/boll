@@ -1,7 +1,14 @@
 -+ look-at camera
-- spline-svans-kamera
++ spline-svans-kamera
 + scoreboard
 + bollar rullar
+
+
+Nya spelmoden:
+ + "kull" = ger poäng
+ + "kull" = minskar poäng
+ - samla ihop 3-4 saker och bli "master???"
+ 
 
 
 game-modes:
@@ -31,8 +38,8 @@ gameplay/other:
  + falling down holes
  + collideing with other players
  - turn into stone
- - charge
- - picking up powerups / health (points)
+ + charge
+ + picking up powerups / health (points)
  - shooting points
  - using powerups
  - score/health/powerup-status display
