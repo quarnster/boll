@@ -4,3 +4,11 @@ thec gave me the idea for this game on our irc-channel #outbreak at ircnet.
 discussed this quite a bit with thec and also did lots of thinking on my own.
 emailed loosen@goatstore.com to say that I will enter this competition.
 created some baseclasses and thought a bit on how to implement the whole thing.
+
+Saturday, January 24
+
+heavy brainstormingsession with my brother. lots of new ideas and lots of changes
+to how the game should be :)
+borrowed two controllers from my brother and got a hub from dad.
+got a cube to bounce around on the screen.
+
