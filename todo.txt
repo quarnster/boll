@@ -1,3 +1,9 @@
+look-at camera
+spline-svans-kamera
+scoreboard
+bollar rullar
+
+
 game-modes:
  - highest health/score
  - most frags
@@ -17,12 +23,13 @@ menu:
  - credits
 
 gameplay/other:
- - draw level
- - z-clipping
- - collide with level
+ - sky
+ + draw level
+ + z-clipping
+ + collide with level
  - getting hurt from spikes
- - falling down holes
- - collideing with other players
+ + falling down holes
+ + collideing with other players
  - turn into stone
  - charge
  - picking up powerups / health (points)

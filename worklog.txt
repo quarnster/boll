@@ -167,4 +167,4 @@ Worked on clipping code and level rendering.
 
 Tuesday, February 24
 
-Made a mainmenu. More levelhandling work
+Made a mainmenu. More levelhandling work. Centralized resource-handling.
