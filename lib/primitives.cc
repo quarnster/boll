@@ -206,3 +206,74 @@ q3dTypePolyhedron *generateCube(float size) {
 	return cube;
 }
 
+q3dTypePolyhedron *generateTorus(int n, double r) {
+	q3dTypePolyhedron *cube = (q3dTypePolyhedron*) malloc(sizeof(q3dTypePolyhedron));
+	q3dPolyhedronInit(cube);
+	
+	int i, j, pos;
+	float delta = 2 * F_PI / n;
+	float alpha, cosa, sina;
+	float beta, x;
+	int i1, j1;
+	int in;
+
+	cube->vertexLength = n * n;
+	cube->polygonLength = n * n;
+	cube->vertex = (q3dTypeVertex*) malloc(cube->vertexLength*sizeof(q3dTypeVertex));
+	cube->polygon = (q3dTypePolygon*) malloc(cube->polygonLength *sizeof(q3dTypePolygon));
+
+	pos = 0;
+	for (i = 0; i < n; i++) {
+		alpha = i * delta;
+		cosa = fcos(alpha);
+		sina = fsin(alpha);
+
+		for (j = 0; j < n; j++) {
+			beta = j * delta;
+			x = r + fcos(beta);
+
+			cube->vertex[pos].x = cosa * x;
+			cube->vertex[pos].y = sina * x;
+			cube->vertex[pos].z = fsin(beta);
+			pos++;
+		}
+	}
+
+	pos = 0;
+	for (i = 0; i < n; i++) {
+		float it = i;
+		i1 = (i + 1) % n;
+		i1 *= n;
+		in = i * n;
+		
+		for (j = 0; j < n; j++) {
+			float ij = j;
+			j1 = (j + 1) % n;
+
+			q3dPolygonInit(&cube->polygon[pos]);
+			cube->polygon[pos].vertexLength = 4;
+			cube->polygon[pos].vertex = (uint16*) malloc(4 * sizeof(uint16));;
+			cube->polygon[pos].vertex[0] = in + j;
+			cube->polygon[pos].vertex[1] = i1 + j;
+			cube->polygon[pos].vertex[2] = in + j1;
+			cube->polygon[pos].vertex[3] = i1 + j1;
+
+			cube->polygon[pos].texel = (q3dTypeTexel*) malloc(4 * sizeof(q3dTypeTexel));
+			cube->polygon[pos].texel[0].u = it/n;
+			cube->polygon[pos].texel[0].v = ij/n;
+			cube->polygon[pos].texel[1].u = (it+1)/n;
+			cube->polygon[pos].texel[1].v = ij/n;
+			cube->polygon[pos].texel[2].u = it/n;
+			cube->polygon[pos].texel[2].v = (ij+1)/n;
+			cube->polygon[pos].texel[3].u = (it+1)/n;
+			cube->polygon[pos].texel[3].v = (ij+1)/n;
+
+			pos++;
+		}
+	}
+	q3dColorSet3f(&cube->material.color, 0.5f, 0.25f, 1.0f);
+
+	return cube;
+}
+
+

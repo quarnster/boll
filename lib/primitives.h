@@ -5,5 +5,6 @@
 
 q3dTypePolyhedron *generateCube(float size);
 q3dTypePolyhedron *generateSphere();
+q3dTypePolyhedron *generateTorus(int n, double r);
 
 #endif
