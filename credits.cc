@@ -467,7 +467,12 @@ static char cred_text[LINENUM][45] = {
 	"at March 16th (one day before the",
 	"deadline..)",
 	"",
-	"Acctually it is the first \"real\" game",
+	"Ofcourse, since I am a full time student,",
+	"I could not code everyday. And the days",
+	"I could, I could only code for an hour",
+	"or two.",
+	"",
+	"Acctually this is the first \"real\" game",
 	"that I've ever coded. Before this I've",
 	"only made \"snake\" (but I did it twice! ;))",
 	"Not that bad for a first timer eh?",
@@ -483,7 +488,7 @@ static char cred_text[LINENUM][45] = {
 	"Mikael Kalms",
 	"Dan Potter",
 	"Lars Olsson",
-	"Yamoto",
+	"Yamato",
 	"",
 	"Of course, this list could be a lot",
 	"longer, but these are the names that",
@@ -589,6 +594,7 @@ void Credits::run() {
 	static Point3D p2;
 	static Point3D p3;
 
+	cddaPlay(CREDITTRACK);
 	q3dMatrixInit();
 	plx_fcxt_setsize(fcxt, fontSize);
 
@@ -738,7 +744,7 @@ void Credits::run() {
 		plx_fcxt_begin(fcxt);
 
 		for (int i = 0; i < LINENUM; i++) {
-			kFrame.getKey(frames, 4, &key, time - 2 - i*1*2);
+			kFrame.getKey(frames, 4, &key, time - 5 - i*1*2);
 			float y = key.y; //(int) (i * fontSize + 320 - time * 34);
 			if (y < 0) continue;
 			if (y > 480) break;
