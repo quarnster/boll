@@ -16,6 +16,9 @@ public:
 	void update(Game *game);
 	void draw();
 
+	float zoom;
+	float camheight;
+	float camadd;
 	q3dTypeColor color;
 private:
 	int port;

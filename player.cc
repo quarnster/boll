@@ -31,33 +31,53 @@ void Player::update(Game *game) {
 	float px = (LEVELSIZE + position.x) / (2 * LEVELSIZE);
 	float pz = (LEVELSIZE + position.z) / (2 * LEVELSIZE);
 
+	camadd = 0;
 	int pos = (int) (pz * 32) *32 + (int) (px*32);
 	if (px < 0 || pz < 0 || px > 1 || pz > 1) {
 		// outside of level
 		q3dColorSet3f(&color, 1.0f, 0.0f, 0.0f);
-		level = 100;
+		level = -100;
 	} else if (levelData[pos] == HOLE) {
 		// we are above a hole
 		q3dColorSet3f(&color, 1.0f, 1.0f, 0.0f);
-		level = 100;
+		level = -100;
 	} else if (levelData[pos] == HIGH) {
 		// we are at a cube
-		level = -10;
+		level = 10;
 		q3dColorSet3f(&color, 0.0f, 0.0f, 1.0f);
+		camadd = 10;
 	} else {
 		// solid ground
 		q3dColorSet3f(&color, 0.0f, 1.0f, 0.0f);
 	}
-	bool inair = position.y <= level - 0.1f - ballradius;
+	bool inair = position.y >= level + 0.1f + ballradius;
 
 	if (!dietime && dev != NULL && dev->info.functions & MAPLE_FUNC_CONTROLLER) {
 		cont_state_t* s = (cont_state_t*) maple_dev_status(dev);
 		float cx = s->joyx / 2048.0f;
-		float speed = -s->joyy / 6144.0f;
+		float speed = -s->joyy / 8000.0f;
+
+		if (s->buttons & CONT_DPAD_UP) {
+			camheight += 1.0f / 4.0f;
+		} else if (s->buttons & CONT_DPAD_DOWN) {
+			camheight -= 1.0f / 4.0f;
+		}
+
+		if (s->buttons & CONT_DPAD_LEFT) {
+			zoom -= 1.0f / 4.0f;
+		} else if (s->buttons & CONT_DPAD_RIGHT) {
+			zoom += 1.0f / 4.0f;
+		}
+
+		if (zoom < 2) zoom = 2;
+		else if (zoom > 15) zoom = 15;
+
+		if (camheight < 1) camheight = 1;
+		else if (camheight > 8) camheight = 8;
 
 		if (s->buttons & CONT_A) {
-			if (jumpplay && (qtime - jumpstart) < 250) {
-				direction.y = 0.85f;
+			if (jumpplay && (qtime - jumpstart) < 400) {
+				direction.y = 0.65f;
 			}
 			if (!jumpplay && (qtime - jumpstart) < 125) {
 				snd_sfx_play(sounds[JUMP], 255, 0);
@@ -95,7 +115,7 @@ void Player::update(Game *game) {
 	// do collision detection between spheres.
 	// this sphere has allready been tested against the previous
 	// spheres so we don't need to test with those again.
-/*
+
 	for (int i = port+1; i < 4; i++) {
 		Player *p = &game->player[i];
 		Point3D v(position);
@@ -115,13 +135,17 @@ void Player::update(Game *game) {
 			Point3D temp(direction);
 			Point3D v2(v);
 
-			v2 /= len;
-			temp *= 0.5f;
-			p->direction *= 0.5f;
-			v2 /= 32.0f;
+			Point3D normal = v;
+			normal.normalize();
+			Point3D reflection = direction - 2*(direction.dot(normal)) * normal;
 
-			direction = p->direction + v2 - temp;
-			p->direction = temp - v2 - p->direction;
+			normal.x = -normal.x;
+			normal.y = -normal.y;
+			normal.z = -normal.z;
+			Point3D reflection2 = p->direction - 2*(p->direction.dot(normal)) * normal;
+
+			direction = reflection *0.5 - reflection2 * 0.5;
+			p->direction = reflection2 * 0.5 - reflection *0.5;
 
 			len *= 2 * 2;
 			v /= len;
@@ -134,7 +158,7 @@ void Player::update(Game *game) {
 	}
 
 	// Collide with boxes
-	if (!dietime && position.y > -10 - ballradius) {
+	if (!dietime && position.y < 10 + ballradius) {
 		px *= 32;
 		pz *= 32;
 
@@ -166,18 +190,18 @@ void Player::update(Game *game) {
 			pos2 += ipx;
 			if (levelData[pos2] == HIGH && (fpz < 0.1 || fpz > 0.9)) {
 				float add = fpz < 0.1 ? 0.11 : 0.89;
-				position.z = -((float) (ipz + add) / 32.0f * 2 * LEVELSIZE - LEVELSIZE);
+				position.z = ((float) (ipz + add) / 32.0f * 2 * LEVELSIZE - LEVELSIZE);
 				direction.z = -direction.z * 0.5;
 			}
 		}
 	}
 
 	// TODO: proper collusion detection
-	if (!dietime && position.y > level - ballradius) {
-		position.y = level - ballradius;
+	if (!dietime && position.y < level + ballradius) {
+		position.y = level + ballradius;
 		float val = 0.75;
 
-		if (direction.y < 1.0f) {
+		if (fabs(direction.y) < 1.0f) {
 			val = direction.y * direction.y  * val;
 		}
 		direction.y = -direction.y * val;
@@ -185,23 +209,23 @@ void Player::update(Game *game) {
 		snd_sfx_play(sounds[BOUNCE2], 255, 0);
 	} else if (inair) {
 		// airborn. do some gravity to the ball
-		direction.y += 0.1f;
+		direction.y -= 0.075f;
 	}
 
-	if (dietime > 0 || (position.y > 0 && level > 0)) {
+	if (dietime > 0 || (position.y < 0 && level < 0)) {
 		// we are falling into a hole or are outside of the level
 		if (dietime == 0) {
 			dietime = qtime;
-			snd_sfx_play(sounds[FALL], 255, 0);
+			snd_sfx_play(sounds[FALL], 255, 128);
 		} else if (qtime - dietime > 1500) {
 			dietime = 0;
-			position.y = -4;
-			position.x = 0;
+			position.y = 4;
+			position.x = -2;
 			position.z = 0;
 			direction.x = direction.y = direction.z = 0;
 		}
 	}
-*/
+
 }
 
 void Player::draw() {
