@@ -10,6 +10,10 @@ public:
 
 	void update();
 	void draw(q3dTypeCamera *cam);
+
+private:
+	q3dTypeVertex	*vertex;
+	pvr_vertex_t	*finalVertex;
 };
 
 #endif
