@@ -5,6 +5,7 @@
 
 TARGET = game.elf
 OBJS = \
+	lib/Point3D.o \
 	game.o \
 	level.o \
 	object.o \
@@ -26,7 +27,7 @@ rm-elf:
 
 $(TARGET): $(OBJS)
 	$(KOS_CC) $(KOS_CFLAGS) $(CFLAGS) $(KOS_LDFLAGS) -o $(TARGET) $(KOS_START) \
-		$(OBJS) $(OBJEXTRA) -L$(KOS_BASE)/lib -lq3d -lpng -lz -lm $(KOS_LIBS)
+		$(OBJS) $(OBJEXTRA) -L$(KOS_BASE)/lib -lq3d -lpng -lz -lm -lk++ $(KOS_LIBS)
 
 run: $(TARGET)
 	$(KOS_LOADER) $(TARGET)
