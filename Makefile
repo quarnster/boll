@@ -9,30 +9,24 @@ OBJS = \
 	level.o \
 	object.o \
 	player.o \
+	ntscmenu.o \
 	mainmenu.o \
-	main.o \
-	romdisk.o
+	main.o
 
 all: rm-elf $(TARGET)
 
 include $(KOS_BASE)/Makefile.rules
-KOS_CFLAGS += -I/home/quarn/code/dreamcast/libq3d/include
+KOS_CFLAGS += -DBETA -I/home/quarn/code/dreamcast/libq3d/include
 
 clean:
-	-rm -f $(TARGET) $(OBJS) romdisk.* *~
+	-rm -f $(TARGET) $(OBJS) *~
 
 rm-elf:
-	-rm -f $(TARGET) romdisk.*
+	-rm -f $(TARGET)
 
 $(TARGET): $(OBJS)
 	$(KOS_CC) $(KOS_CFLAGS) $(CFLAGS) $(KOS_LDFLAGS) -o $(TARGET) $(KOS_START) \
 		$(OBJS) $(OBJEXTRA) -L$(KOS_BASE)/lib -lq3d -lpng -lz -lm $(KOS_LIBS)
-
-romdisk.img:
-	$(KOS_GENROMFS) -f romdisk.img -d romdisk -v
-
-romdisk.o: romdisk.img
-	$(KOS_BASE)/utils/bin2o/bin2o romdisk.img romdisk romdisk.o
 
 run: $(TARGET)
 	$(KOS_LOADER) $(TARGET)
