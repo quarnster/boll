@@ -1,11 +1,8 @@
 #include "primitives.h"
 
-q3dTypePolyhedron *generateSphere() {
+q3dTypePolyhedron *generateSphere(int nRings, int nSegments) {
 	q3dTypePolyhedron *sphere = (q3dTypePolyhedron*) malloc(sizeof(q3dTypePolyhedron));
 	q3dPolyhedronInit(sphere);
-
-	int nRings = 6;
-	int nSegments = 6;
 
 	sphere->vertexLength = ( nRings + 1 ) * ( nSegments + 1 );
 	sphere->vertex = (q3dTypeVertex*) malloc(sphere->vertexLength * sizeof(q3dTypeVertex));
