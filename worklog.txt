@@ -49,3 +49,10 @@ fixed 4-player split-view mode
 fixed following camera
 fixed quake-like steering
 
+
+
+Wednesday, January 28
+
+The whole day was used trying to get the level to draw. Not as much getting it to draw as to
+trying to optimize it so we'll get a decent framerate in 4-player mode. Read lots of documents
+about quadtrees and octrees. Messed around a LOT trying to get frustum culling to work.
