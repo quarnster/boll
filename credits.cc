@@ -598,17 +598,19 @@ void Credits::run() {
 		dev = maple_enum_dev(0, 0);
 		if (dev != NULL && dev->info.functions & MAPLE_FUNC_CONTROLLER) {
 			cont_state_t* st = (cont_state_t*) maple_dev_status(dev);
-			if (st->buttons & CONT_START && !(last & CONT_START) || st->buttons & CONT_A && !(last & CONT_A)) {
-				return;
-			}
-			if (st->buttons & CONT_Y) {
-				sphere->_pos.x = sphere->_pos.y = sphere->_pos.z = 0;
-				velocity.x =velocity.y = velocity.z = 0;
-			}
-			if (st->buttons & CONT_B) {
-				sphere->_pos.x = sphere->_pos.y = sphere->_pos.z = 0;
-				velocity.x =velocity.y = velocity.z = 0;
-				sphere->_pos.y = 20;
+			if (st->buttons != last) {
+				if (st->buttons & CONT_START || st->buttons & CONT_A) {
+					return;
+				}
+				if (st->buttons & CONT_Y) {
+					sphere->_pos.x = sphere->_pos.y = sphere->_pos.z = 0;
+					velocity.x =velocity.y = velocity.z = 0;
+				}
+				if (st->buttons & CONT_B) {
+					sphere->_pos.x = sphere->_pos.y = sphere->_pos.z = 0;
+					velocity.x =velocity.y = velocity.z = 0;
+					sphere->_pos.y = 20;
+				}
 			}
 
 			last = st->buttons;
@@ -626,21 +628,6 @@ void Credits::run() {
 		q3dMatrixRotateZ(cube->_agl.z);
 		q3dMatrixTransform(cube->vertex, world_coordinates, 8, sizeof(q3dTypeVertex));
 
-
-
-		maple_device_t *dev = maple_enum_dev(0, 0);
-		if (dev != NULL && dev->info.functions & MAPLE_FUNC_CONTROLLER) {
-			cont_state_t* s = (cont_state_t*) maple_dev_status(dev);
-
-//			cube->_agl.x += s->joyy / 4096.0f;
-//			cube->_agl.y += s->joyx / 4096.0f;
-
-			if (s->buttons & CONT_A) {
-				sphere->_pos.x = sphere->_pos.y = sphere->_pos.z = 0;
-				velocity.set(0,0,0);
-	//			velocity.x = velocity.y = velocity.z = 0;
-			}
-		}
 		packet.foundCollision = false;
 		packet.nearestDistance = 10;
 		packet.basePoint.set(sphere->_pos.x, sphere->_pos.y, sphere->_pos.z);
@@ -707,7 +694,6 @@ void Credits::run() {
 		}
 		if (addVelocity)
 			velocity += gravity;
-
 
 		// begin rendering
 		pvr_wait_ready();
