@@ -3,11 +3,13 @@
 
 #include <q3d.h>
 #include "lib/Point3D.h"
-#include "game.h"
+//#include "game.h"
 
 class Game;
 class Object {
 public:
+	virtual ~Object() {
+	};
 	virtual void update(Game *game) = 0;
 	virtual void draw() = 0;
 
