@@ -23,6 +23,8 @@ public:
 
 
 private:
+	q3dTypeVertex	*vertexScreen;
+	q3dTypeVertex	*vertexCam;
 /*
 	q3dTypeVertex	*vertex;
 	q3dTypeVertex	*finalPositions;
