@@ -12,7 +12,7 @@
 class Player;
 
 #define MAX_SCORE_NUM 0
-#define MAX_POWERUP_NUM 0
+#define MAX_POWERUP_NUM 1
 
 class Game {
 public:
@@ -26,6 +26,8 @@ public:
 	Player		*player;
 	ScoreObject	score[MAX_SCORE_NUM];
 	PowerupObject	powerup[MAX_POWERUP_NUM];
+
+	uint32	type;
 private:
 	void reset();
 	void update();
@@ -39,6 +41,8 @@ private:
 //	Object	*objects;
 	uint64	gamestart;
 	uint32	soundtrack;
+	uint32 countdown;
+
 	bool done;
 	bool endtrack;
 };
