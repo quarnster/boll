@@ -1,6 +1,15 @@
 #include <kos.h>
 #include "Point3D.h"
 
+Point3D operator*(const float& mul, const Point3D& p) {
+	Point3D tmp;
+	tmp.x = mul * p.x;
+	tmp.y = mul * p.y;
+	tmp.z = mul * p.z;
+
+	return tmp;
+}
+
 Point3D::Point3D() {
 	x = 0;
 	y = 0;

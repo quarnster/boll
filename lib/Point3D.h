@@ -33,5 +33,7 @@ public:
 	Point3D operator/=(const float);
 };
 
+Point3D operator*(const float& mul, const Point3D& p);
+
 
 #endif
