@@ -5,12 +5,14 @@
 
 #include "player.h"
 #include "scoreobject.h"
+#include "powerupobject.h"
 #include "level.h"
 #include "resources.h"
 
 class Player;
 
-#define MAX_SCORE_NUM 200
+#define MAX_SCORE_NUM 0
+#define MAX_POWERUP_NUM 1
 
 class Game {
 public:
@@ -22,6 +24,7 @@ public:
 	bool gameended;
 	Player		*player;
 	ScoreObject	score[MAX_SCORE_NUM];
+	PowerupObject	powerup[MAX_POWERUP_NUM];
 private:
 	void reset();
 	void update();
@@ -36,6 +39,7 @@ private:
 	uint64	gamestart;
 	uint32	soundtrack;
 	bool done;
+	bool endtrack;
 };
 
 #endif
