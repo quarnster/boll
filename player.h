@@ -4,6 +4,7 @@
 #include <q3d.h>
 #include "object.h"
 #include "resources.h"
+#include "lib/QuatCamera.h"
 
 class Game;
 
@@ -16,15 +17,27 @@ public:
 	void update(Game *game);
 	void draw();
 
-	int score;
+	void	addScore(int score);
+	void	setScore(int score);
+	int	getScore();
+	int	getCurrentScore();
 
+	QuatCamera camera;
+/*
 	float camzoom;
 	float camheight;
 	float camadd;
 	float camagl;
+*/
+	float radius;
+	bool active;
 
 	q3dTypeColor color;
+	q3dTypeColor baseColor;
 private:
+	int score;
+	int scoreadd;
+
 	int port;
 
 	int previousButtons;
@@ -36,7 +49,7 @@ private:
 
 	int dietime;
 
-	bool bice;
+//	bool bice;
 
 	q3dTypeQuaternion qRot;
 };
