@@ -41,10 +41,10 @@ private:
 	int port;
 
 	int previousButtons;
-	int jumpstart;
+	uint32 jumpstart;
 	bool jumpplay;
 
-	int thrusttime;
+	uint32 thrusttime;
 	bool thrusting;
 
 	uint64 dietime;
