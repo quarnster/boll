@@ -1,15 +1,13 @@
 #include "disclaimer.h"
 #include "resources.h"
 
-#define LINES 12
+#define LINES 10
 
 static int width[LINES];
 static float fontSize = 24;
 static char disc_text[LINES][45] = {
 	"Obviously, we are not quite",
-	"finished yet... Read \"gamedoc.doc\"",
-	"for a more complete picture of our",
-	"vision with this game.",
+	"finished yet...",
 	"",
 	"This game needs you!",
 	"We are very interested in your",
@@ -39,7 +37,7 @@ void Disclaimer::show() {
 	for (int i = 0; i < LINES; i++) {
 		float y = (int) (i * fontSize + 240 - (fontSize / 2)*LINES);
 
-		if (i == 5)
+		if (i == 3)
 			plx_fcxt_setcolor4f(fcxt, 1, 1, 0, 0);
 		else
 			plx_fcxt_setcolor4f(fcxt, 1, 1, 1, 1);
