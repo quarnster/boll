@@ -2,9 +2,7 @@
 
 #include "player.h"
 
-Player::Player(int p, int u) : Object() {
-	port = p;
-	unit = u;
+Player::Player() : Object() {
 	jump = false;
 	jumpstart = 0;
 	jumpok = true;
@@ -12,11 +10,17 @@ Player::Player(int p, int u) : Object() {
 
 Player::~Player() {
 }
+
+void Player::setController(int port) {
+	this->port = port;
+}
+
 extern q3dTypePolyhedron *sphere;
+extern q3dTypeFiller fillerPlayers;
 extern uint32 qtime;
 
 void Player::update() {
-	maple_device_t *dev = maple_enum_dev(port, unit);
+	maple_device_t *dev = maple_enum_dev(port, 0);
 	if (dev != NULL && dev->info.functions & MAPLE_FUNC_CONTROLLER) {
 		cont_state_t* s = (cont_state_t*) maple_dev_status(dev);
 		float cx = s->joyx / 4096.0f;
@@ -70,7 +74,9 @@ void Player::update() {
 	}
 	if (position.y > -1 && fabs(direction.y) < 0.05) jumpok = true;
 	else if (!jump) jumpok = false;
+}
 
+void Player::draw(q3dTypeCamera *cam) {
 	sphere->_pos.x = position.x;
 	sphere->_pos.y = position.y;
 	sphere->_pos.z = position.z;
@@ -78,7 +84,8 @@ void Player::update() {
 	sphere->_agl.z = rotation.z;
 	sphere->_agl.x = rotation.x;
 
-//	q3dColorSet3f(&sphere->material.color, 1.0f, 0.5f, 0.25f);
-//	q3dPolyhedronPaint(sphere, &cam, &fillerCell);
+	sphere->material.header = fillerPlayers.defaultHeader;
+	q3dColorSet3f(&sphere->material.color, 0.5f, 0.5f, 0.75f);
+	q3dPolyhedronPaint(sphere, cam, &fillerPlayers);
 }
 
