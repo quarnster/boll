@@ -36,8 +36,23 @@ void Point3D::set(float x2, float y2, float z2) {
 	z = z2;
 }
 
-float Point3D::dot(const Point3D &p) {
+double Point3D::squaredLength() {
+	return x*x + y*y + z*z;
+}
+double Point3D::length() {
+	return fsqrt(squaredLength());
+}
+
+float Point3D::dot(const Point3D &p) const {
 	return x * p.x + y * p.y + z * p.z;
+}
+
+Point3D Point3D::cross(const Point3D &p) const {
+	Point3D tmp;
+	tmp.x = y * p.z - z * p.y;
+	tmp.y = z * p.x - x * p.z;
+	tmp.z = x * p.y - y * p.x;
+	return tmp;
 }
 
 void Point3D::operator=(const Point3D &p) {
@@ -46,7 +61,7 @@ void Point3D::operator=(const Point3D &p) {
 	z = p.z;
 }
 
-Point3D Point3D::operator+(const Point3D &p) {
+Point3D Point3D::operator+(const Point3D &p) const {
 	Point3D tmp = *this;
 	tmp.x += p.x;
 	tmp.y += p.y;
@@ -54,7 +69,7 @@ Point3D Point3D::operator+(const Point3D &p) {
 
 	return tmp;
 }
-Point3D Point3D::operator-(const Point3D &p) {
+Point3D Point3D::operator-(const Point3D &p) const {
 	Point3D tmp = *this;
 	tmp.x -= p.x;
 	tmp.y -= p.y;
@@ -63,7 +78,7 @@ Point3D Point3D::operator-(const Point3D &p) {
 	return tmp;
 }
 
-Point3D Point3D::operator*(const float mul) {
+Point3D Point3D::operator*(const float& mul) {
 	Point3D tmp = *this;
 	tmp.x *= mul;
 	tmp.y *= mul;
@@ -71,6 +86,7 @@ Point3D Point3D::operator*(const float mul) {
 
 	return tmp;
 }
+
 
 Point3D Point3D::operator/(const float div) {
 	Point3D tmp = *this;
