@@ -23,11 +23,13 @@ public:
 	Game();
 	~Game();
 
-	void update();
-	void draw();
+	void run();
 
 	Player	*player;
 private:
+	void update();
+	void draw();
+
 	q3dTypeCamera cam;
 	Level	level;
 
