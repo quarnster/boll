@@ -148,8 +148,6 @@ int main(int argc, char **argv) {
 	vid_set_mode(DM_640x480, PM_RGB565);
 #endif
 
-	pvr_set_bg_color(1.0f, 1.0f, 1.0f);
-
 	// Get basic stuff initialized
 	timer_prime(TMU0, 500, 1);
 	timer_start(TMU0);
@@ -157,10 +155,17 @@ int main(int argc, char **argv) {
 	irq_set_handler(TIMER_IRQ, &handle_time);
 
 	snd_init();
+
 	qtime = 0;
 
 	Game game;
+#ifdef BETA
 	cont_btn_callback(0, CONT_START | CONT_A | CONT_B | CONT_X | CONT_Y, (cont_btn_callback_t) ccallback);
+#endif
+
+	pvr_fog_table_color(1, 0, 0, 0);
+	pvr_fog_table_exp2(0.015f);
+
 	while(!done) {
 		game.update();
 		game.draw();
