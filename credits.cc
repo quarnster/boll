@@ -449,24 +449,40 @@ VECTOR CharacterEntity::collideWithWorld(const VECTOR& pos, const VECTOR& vel) {
 }
 */
 
-#define LINENUM 120
+#define LINENUM 178
 static int width[LINENUM];
 
 static float fontSize = 24;
 static char cred_text[LINENUM][45] = {
-	"== Programming ==",
-	"Fredrik \"quarn\" Ehnbom",
+	"== Concept ==",
+	"Fredrik Ehnbom",
+	"Andreas Ehnbom",
+	"Andreas Hedlund",
 	"",
-	"== Music and sfx ==",
-	"Andreas \"zantac\" Hedlund",
+	"== Programming ==",
+	"Fredrik Ehnbom",
+	"",
+	"== Music composed, ==",
+	"== arranged and produced by ==",
+	"Andreas Hedlund",
+	"",
+	"== Mixing and mastering ==",
+	"Andreas Hedlund",
+	"Johan Olkerud",
+	"",
+	"== Sound effects ==",
+	"Andreas Hedlund",
+	"",
+	"== 3d graphics and textures ==",
+	"Fredrik Ehnbom",
 	"",
 	"This has been the result of",
 	"around 50 days of work.",
 	"",
 	"The project started at January 23rd",
 	"and was submitted to the dream-on",
-	"competition at March 16th",
-	"(one day before the deadline..)",
+	"competition at March 17th",
+	"(the same day as the deadline..)",
 	"",
 	"",
 	"",
@@ -477,14 +493,12 @@ static char cred_text[LINENUM][45] = {
 	"by the fact that I managed to work on",
 	"this game, study for school and attend",
 	"my wing chun training with neither of",
-	"these suffering too much.",
-	"",
-	"",
+	"thesea suffering too much.",
 	"",
 	"I just wish that I had found out about",
 	"this competition earlier. Then maybe the",
-	"game as described in \"gamedoc.doc\"",
-	"would have been completed by now.",
+	"game would have been fully completed",
+	"by now.",
 	"",
 	"",
 	"But then again... maybe not ;)",
@@ -529,6 +543,69 @@ static char cred_text[LINENUM][45] = {
 	"",
 	"",
 	"",
+	"Handing over the keyboard to",
+	"our musician now:",
+	"",
+	"",
+	"",
+	"Boll from my perspective,",
+	"",
+	"When Fredrik came to me with the",
+	"\"boll\" idea, I knew it would",
+	"be a hit. At least it was in my",
+	"mind. Later it turned out not",
+	"to be as easy as I'd thought.",
+	"We didn't have time to finish",
+	"all our ideas, but I hope that",
+	"we can implement a majority of",
+	"them in the future.",
+	"",
+	"",
+	"Anyway, we have a finished game",
+	"that we are not ashamed of,a game",
+	"that is playable and fun, that",
+	"was created in a very short time.",
+	"",
+	"",
+	"Now, my part of the work was",
+	"mainly based on the sounds",
+	"and the soundtracks.",
+	"",
+	"",
+	"The soundtracks was a great",
+	"experience. It began with the",
+	"\"menu\"-tune, and then I",
+	"completly changed the theme",
+	"of the game into a more jazzy",
+	"mood, but the menu fitted well",
+	"so I kept it. Inspiration came",
+	"from a lot of sources, but the",
+	"event that started it all was",
+	"the jazz concert with",
+	"Nils Landgren (a swedish",
+	"trombonist). Also, inspiration",
+	"from the 80:th, and inspiration",
+	"from my friend Henrik Joses",
+	"songs. Thanks to Johan Olkerud,",
+	"who helped with the mastering",
+	"of the soundtrack",
+	"",
+	"",
+	"It was the first time I've made",
+	"sound effects and I think it",
+	"turned out pretty well. Although,",
+	"my passion is composing music,",
+	"the effect work was useful",
+	"learning. Almost all the effects",
+	"were modulated with my Nord Lead",
+	"synthesizer, and the others from",
+	"my Korg Triton.",
+	"",
+	"/Andreas Hedlund",
+	"",
+	"",
+	"",
+	"",
 	"This game would not have been possible",
 	"without all the people writing code",
 	"(and the very few who write docs..)",
@@ -548,20 +625,11 @@ static char cred_text[LINENUM][45] = {
 	"",
 	"",
 	"",
-	"We'd also like to send some greetings",
-	"to our friends in",
-	"",
-	"obscure",
-	"noice",
-	"yodel",
-	"comic bakery",
-	"deus ex machina",
-	"medieval",
-	"absession",
-	"everyone we forgot",
 	"",
 	"and last but not least",
 	"THANK YOU",
+	"(for playing this game)",
+	"",
 	"",
 	"*hugs*",
 };
@@ -609,18 +677,9 @@ Credits::Credits() {
 	torus = generateTorus(20, 2);
 	q3dPolyhedronCompile(torus);
 
-	q3dFillerTextureInit(&torus1Filler);
-	torus1Filler.defaultCxt = loadImage("amiga.png", PVR_LIST_OP_POLY);
+	q3dFillerEnvironmentInit(&torus1Filler);
+	torus1Filler.defaultCxt = loadImage("env.png", PVR_LIST_OP_POLY);
 	pvr_poly_compile(&torus1Filler.defaultHeader, &torus1Filler.defaultCxt);
-
-	q3dFillerEnvironmentInit(&torus2Filler);
-	torus2Filler.defaultCxt = loadImage("env.png", PVR_LIST_PT_POLY);
-	torus2Filler.defaultCxt.list_type = PVR_LIST_PT_POLY;
-	torus2Filler.defaultCxt.depth.comparison = PVR_DEPTHCMP_NEVER;
-	torus2Filler.defaultCxt.blend.src = PVR_BLEND_ONE; //DESTCOLOR;
-	torus2Filler.defaultCxt.blend.dst = PVR_BLEND_ZERO;
-	pvr_poly_compile(&torus2Filler.defaultHeader, &torus2Filler.defaultCxt);
-
 }
 
 Credits::~Credits() {
@@ -673,6 +732,9 @@ void Credits::run() {
 		}
 
 		float time = (timer_ms_gettime64() - startTime) / 1000.0f;
+		if (time - 5 - LINENUM*1.25 > 10) {
+			startTime = timer_ms_gettime64();
+		}
 
 		// begin rendering
 		pvr_wait_ready();
@@ -683,21 +745,46 @@ void Credits::run() {
 		plane.draw();
 //		q3dPolyhedronPaint(sphere, &cam, &sphereFiller);
 
-
-		torus->_agl.x = time * 0.25 * 1.2;
-		torus->_agl.y = time * 0.25 * 1.3;
-		torus->_agl.z = time * 0.25 * 1.1;
+		float time2 = timer_ms_gettime64() / 1000.0f;
 		torus->material.header = torus1Filler.defaultHeader;
+
+		float a = time2 * 0.5 * 1.2 * 0.5;
+		static q3dTypeQuaternion qx;
+		qx.w = cos(a);
+		qx.x = sin(a);
+		qx.y = qx.z = 0;
+
+		a = time2 * 0.5 * 1.1 * 0.5;
+		static q3dTypeQuaternion qz;
+		qz.w = cos(a);
+		qz.x = qz.y = 0;
+		qz.z = sin(a);
+
+		q3dQuaternionNormalize(&qx);
+		q3dQuaternionNormalize(&qz);
+
+		q3dQuaternionMul(&qx, &qz);
+
 		q3dColorSet3f(&torus->material.color, 1.0f, 1.0f,1.0f);
-		q3dPolyhedronPaint(torus, &cam, &torus1Filler);
+		q3dQuaternionToMatrix(&qx);
 
-		pvr_list_finish();
+		q3dMatrixLoad(&_q3dMatrixPerspective);
+//		q3dMatrixApply(&_q3dMatrixCamera);
+		q3dMatrixTranslate(0, 0, 5/*position.z*/);
 
-		pvr_list_begin(PVR_LIST_PT_POLY);
+		q3dMatrixApply(&_q3dMatrixTemp);
+//		q3dMatrixStore(&_q3dMatrixTemp);
+//		q3dMatrixApply(&_q3dMatrixTemp);
 
-		pvr_prim(&torus2Filler.defaultHeader, sizeof(pvr_poly_hdr_t));
-		torus2Filler.update(torus);
-		torus2Filler.draw(torus);
+		q3dMatrixTransformPVR(torus->vertex, &torus->_finalVertex[0].x, torus->vertexLength, sizeof(pvr_vertex_t));
+
+		q3dMatrixTransformNormals(torus->_uVertexNormal, torus->_vertexNormal, torus->vertexLength);
+
+		torus1Filler.update(torus);
+		pvr_prim(&torus1Filler.defaultHeader, sizeof(pvr_poly_hdr_t));
+		torus1Filler.draw(torus);
+
+		//		q3dPolyhedronPaint(torus, &cam, &torus1Filler);
 
 		pvr_list_finish();
 
