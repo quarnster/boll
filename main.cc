@@ -91,7 +91,12 @@ void handle_time(irq_t source, irq_context_t *context) {
 	if (!blah) qtime+=2;
 }
 
-KOS_INIT_FLAGS(INIT_IRQ | INIT_MALLOCSTATS);
+KOS_INIT_FLAGS(INIT_DEFAULT /*INIT_IRQ*/ | INIT_MALLOCSTATS);
+
+pvr_init_params_t pvr_params = {
+	{ PVR_BINSIZE_32, PVR_BINSIZE_0, PVR_BINSIZE_16, PVR_BINSIZE_0, PVR_BINSIZE_0 },
+	4*512 * 1024
+};
 
 pvr_poly_cxt_t loadImage(char *name, int list) {
 	pvr_poly_cxt_t	cxt;
@@ -125,7 +130,7 @@ void ccallback(uint8 addr, uint32 buttons) {
 }
 int main(int argc, char **argv) {
 	// Initialize KOS
-	pvr_init_defaults();
+	pvr_init(&pvr_params);
 
 #ifdef BETA
 	fs_chdir("/pc/home/quarn/code/dreamcast/game/data");
@@ -149,10 +154,10 @@ int main(int argc, char **argv) {
 #endif
 
 	// Get basic stuff initialized
-	timer_prime(TMU0, 500, 1);
-	timer_start(TMU0);
+//	timer_prime(TMU1, 500, 1);
+//	timer_start(TMU1);
 
-	irq_set_handler(TIMER_IRQ, &handle_time);
+//	irq_set_handler(TIMER_IRQ, &handle_time);
 
 	snd_init();
 
@@ -167,6 +172,7 @@ int main(int argc, char **argv) {
 	pvr_fog_table_exp2(0.015f);
 
 	while(!done) {
+		qtime = timer_ms_gettime64();
 		game.update();
 		game.draw();
 	}

@@ -1,4 +1,15 @@
+#include <string.h>
 #include "game.h"
+
+#include <plx/font.h>
+#include <plx/list.h>
+#include <plx/dr.h>
+
+static plx_font_t *fnt;
+static plx_fcxt_t *fcxt;
+static point_t w;
+extern uint32 polysent;
+extern uint32 vertextest;
 
 static q3dTypePolyhedron *generateSphere() {
 	q3dTypePolyhedron *sphere = (q3dTypePolyhedron*) malloc(sizeof(q3dTypePolyhedron));
@@ -123,6 +134,15 @@ Game::Game() {
 	sounds[BOUNCE2] = snd_sfx_load("bounce2.wav");
 	sounds[JUMP] = snd_sfx_load("jump.wav");
 	sounds[FALL] = snd_sfx_load("fall.wav");
+
+	// load debug-font
+	fnt = plx_font_load("font.txf");
+	fcxt = plx_fcxt_create(fnt, PVR_LIST_TR_POLY);
+	plx_fcxt_setcolor4f(fcxt, 1, 1, 1, 1);
+
+	w.x = 20;
+	w.y = 32;
+	w.z = 100;
 }
 
 Game::~Game() {
@@ -145,10 +165,15 @@ static pvr_poly_hdr_t user_clip = {
 extern matrix_t projection_matrix;
 void Game::draw() {
 
+	static char buf[256];
+	polysent = 0;
+	vertextest = 0;
+
 	// begin render with TA
 	pvr_wait_ready();
 	pvr_scene_begin();
 	pvr_list_begin(PVR_LIST_OP_POLY);
+	uint64 start = timer_ms_gettime64();
 
 	// draw..
 	for (int i = 0; i < 4; i++) {
@@ -246,6 +271,30 @@ void Game::draw() {
 	pvr_prim(&vert, sizeof(pvr_vertex_t));
 
 	// todo: draw health, score, frags, etc-display
+
+	pvr_list_finish();
+
+	pvr_list_begin(PVR_LIST_TR_POLY);
+
+	w.y = 32;
+	plx_fcxt_begin(fcxt);
+
+	w.y += 32;
+	plx_fcxt_setpos_pnt(fcxt, &w);
+	sprintf(buf, "time: %d", timer_ms_gettime64() - start);
+	plx_fcxt_draw(fcxt, buf);
+
+	w.y += 32;
+	plx_fcxt_setpos_pnt(fcxt, &w);
+	sprintf(buf, "polygons: %d", polysent);
+	plx_fcxt_draw(fcxt, buf);
+
+	w.y += 32;
+	plx_fcxt_setpos_pnt(fcxt, &w);
+	sprintf(buf, "tests: %d", vertextest);
+	plx_fcxt_draw(fcxt, buf);
+
+	plx_fcxt_end(fcxt);
 
 	pvr_list_finish();
 
