@@ -81,16 +81,20 @@ q3dTypeMatrix screen_matrix __attribute__((aligned(32))) = {
 
 sfxhnd_t sounds[SOUND_NUM];
 
+extern pvr_poly_cxt_t loadImage(char *, int);
 Game::Game() {
 	q3dMatrixInit();
 
 	sphere = generateSphere();
 	q3dFillerCellInit(&fillerPlayers);
 	fillerPlayers.defaultCxt.gen.clip_mode = PVR_USERCLIP_INSIDE;
+	fillerPlayers.defaultCxt.gen.fog_type = PVR_FOG_TABLE;
 	pvr_poly_compile(&fillerPlayers.defaultHeader, &fillerPlayers.defaultCxt);
 
 	q3dFillerStandardInit(&fillerLevel);
-	fillerLevel.defaultCxt.gen.clip_mode = PVR_USERCLIP_DISABLE;
+	fillerLevel.defaultCxt = loadImage("buzz.png", PVR_LIST_OP_POLY);
+	fillerLevel.defaultCxt.gen.clip_mode = PVR_USERCLIP_INSIDE;
+	fillerLevel.defaultCxt.gen.fog_type = PVR_FOG_TABLE;
 	pvr_poly_compile(&fillerLevel.defaultHeader, &fillerLevel.defaultCxt);
 
 	q3dCameraInit(&cam);
@@ -118,6 +122,7 @@ Game::Game() {
 	sounds[BOUNCE] = snd_sfx_load("bounce.wav");
 	sounds[BOUNCE2] = snd_sfx_load("bounce2.wav");
 	sounds[JUMP] = snd_sfx_load("jump.wav");
+	sounds[FALL] = snd_sfx_load("fall.wav");
 }
 
 Game::~Game() {
@@ -148,9 +153,9 @@ void Game::draw() {
 	// draw..
 	for (int i = 0; i < 4; i++) {
 		q3dMatrixIdentity();
-		q3dMatrixTranslate(0,2,-10);
+		q3dMatrixTranslate(0,8,-10);
 		q3dMatrixRotateY(player[i].rotation.y);
-		q3dMatrixTranslate(-player[i].position.x,0 /*player[i].position.y*/,-player[i].position.z);
+		q3dMatrixTranslate(-player[i].position.x, 0/*-player[i].position.y*/,-player[i].position.z);
 
 		q3dMatrixStore(&_q3dMatrixCamera);
 		if (i == 0) {
@@ -195,9 +200,13 @@ void Game::draw() {
 			// TODO: camera stuff..
 			player[j].draw();
 		}
-		if (i == 1) {
+
+		q3dMatrixIdentity();
+		q3dMatrixRotateY(player[i].rotation.y);
+		q3dMatrixStore(&_q3dMatrixTemp);
+//		if (i == 1) {
 			level.draw();
-		}
+//		}
 	}
 
 	// commit cross

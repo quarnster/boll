@@ -10,6 +10,7 @@ enum {
 	BOUNCE = 0,
 	BOUNCE2,
 	JUMP,
+	FALL,
 	SOUND_NUM
 };
 
