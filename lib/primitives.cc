@@ -13,6 +13,7 @@ q3dTypePolyhedron *generateSphere(int nRings, int nSegments) {
 	q3dPolygonInit(&sphere->polygon[0]);
 	sphere->polygon[0].vertexLength = 2 * nRings * ( nSegments + 1 ) ;;
 	sphere->polygon[0].vertex = (uint16*) malloc(sphere->polygon[0].vertexLength * sizeof(uint16));
+	sphere->polygon[0].texel = (q3dTypeTexel*) malloc(sphere->polygon[0].vertexLength * sizeof(q3dTypeTexel));
 
 	q3dPolyhedronCompile(sphere);
 
@@ -43,19 +44,25 @@ q3dTypePolyhedron *generateSphere(int nRings, int nSegments) {
 			q3dVertexSet3f(&sphere->vertex[pos], x0, -y0, -z0);
 			q3dVectorSetV(&sphere->_uVertexNormal[pos], &sphere->vertex[pos]);
 //			q3dVectorNormalize(&sphere->_uVertexNormal[pos]);
-			pos++;
 //			pVertex->n = pVertex->p ; 
 //			pVertex->color = 0xffffffff ; 
 //			pVertex->tu = (float) seg / (float) nSegments;
 //			pVertex->tv = (float) ring / (float) nRings;
+			pos++;
 
 
 			// add two indices except for last ring 
 			if ( ring != nRings ) 
 			{
 				sphere->polygon[0].vertex[pos2] = wVerticeIndex ;
+				sphere->polygon[0].texel[pos2].u =  (float) seg / (float) nSegments;
+				sphere->polygon[0].texel[pos2].v = (float) ring / (float) nRings;
 				pos2++;
+
 				sphere->polygon[0].vertex[pos2] = wVerticeIndex + ( nSegments + 1 ) ; 
+				sphere->polygon[0].texel[pos2].u =  (float) seg / (float) nSegments;
+				sphere->polygon[0].texel[pos2].v = (float) (ring+1) / (float) nRings;
+
 				pos2++;
 				wVerticeIndex ++ ; 
 			}
