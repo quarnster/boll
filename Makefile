@@ -14,7 +14,7 @@ OBJS = \
 all: rm-elf $(TARGET)
 
 include $(KOS_BASE)/Makefile.rules
-KOS_CFLAGS += -I/home/quarn/code/dreamcast/libq3d
+KOS_CFLAGS += -I/home/quarn/code/dreamcast/libq3d/include
 
 clean:
 	-rm -f $(TARGET) $(OBJS) romdisk.* *~
@@ -24,7 +24,7 @@ rm-elf:
 
 $(TARGET): $(OBJS)
 	$(KOS_CC) $(KOS_CFLAGS) $(CFLAGS) $(KOS_LDFLAGS) -o $(TARGET) $(KOS_START) \
-		$(OBJS) $(OBJEXTRA) -L$(KOS_BASE)/lib -L/home/quarn/code/dreamcast/libq3d -lq3d -lpng -lz -lm $(KOS_LIBS)
+		$(OBJS) $(OBJEXTRA) -L$(KOS_BASE)/lib -lq3d -lpng -lz -lm $(KOS_LIBS)
 
 romdisk.img:
 	$(KOS_GENROMFS) -f romdisk.img -d romdisk -v
