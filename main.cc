@@ -1,12 +1,15 @@
 #include <kos.h>
 #include <math.h>
+#include <stdio.h>
 #include <png/png.h>
 
 #include <q3d.h>
 
 // #include "player.h"
+#include "mainmenu.h"
 #include "ntscmenu.h"
 #include "game.h"
+#include "credits.h"
 
 q3dTypePolyhedron *generatePlane(float size) {
 	q3dTypePolyhedron *plane = (q3dTypePolyhedron*) malloc(sizeof(q3dTypePolyhedron));
@@ -91,7 +94,7 @@ void handle_time(irq_t source, irq_context_t *context) {
 	if (!blah) qtime+=2;
 }
 
-KOS_INIT_FLAGS(INIT_DEFAULT /*INIT_IRQ*/ | INIT_MALLOCSTATS);
+KOS_INIT_FLAGS(INIT_DEFAULT /*INIT_IRQ*/ /*| INIT_MALLOCSTATS*/);
 
 pvr_init_params_t pvr_params = {
 	{ PVR_BINSIZE_32, PVR_BINSIZE_0, PVR_BINSIZE_16, PVR_BINSIZE_0, PVR_BINSIZE_0 },
@@ -128,6 +131,18 @@ bool done = false;
 void ccallback(uint8 addr, uint32 buttons) {
 	done = true;
 }
+
+plx_font_t *fnt;
+plx_fcxt_t *fcxt;
+
+enum {
+	GAME = 0,
+	LEVEL,
+	BALL,
+	CREDITS,
+	MAINMENU,
+	NTSCMENU
+};
 int main(int argc, char **argv) {
 	// Initialize KOS
 	pvr_init(&pvr_params);
@@ -163,7 +178,10 @@ int main(int argc, char **argv) {
 
 	qtime = 0;
 
-	Game game;
+	fnt = plx_font_load("font.txf");
+	fcxt = plx_fcxt_create(fnt, PVR_LIST_TR_POLY);
+
+
 #ifdef BETA
 	cont_btn_callback(0, CONT_START | CONT_A | CONT_B | CONT_X | CONT_Y, (cont_btn_callback_t) ccallback);
 #endif
@@ -171,17 +189,41 @@ int main(int argc, char **argv) {
 	pvr_fog_table_color(1, 0, 0, 0);
 	pvr_fog_table_exp2(0.015f);
 
-	while(!done) {
-		qtime = timer_ms_gettime64();
-		game.update();
-		game.draw();
+	Game game;
+	Credits credits;
+	MainMenu mmenu;
+
+	int mode = MAINMENU;
+
+	while (!done) {
+//		qtime = timer_ms_gettime64();
+		switch (mode) {
+			case MAINMENU:
+				mode = mmenu.showMenu();
+				break;
+			case GAME:
+				game.run();
+				mode = MAINMENU;
+				break;
+			case CREDITS:
+				credits.run();
+				mode = MAINMENU;
+				break;
+			default:
+				mode = mmenu.showMenu();
+				break;
+		}
 	}
+
+	plx_fcxt_destroy(fcxt);
+	plx_font_destroy(fnt);
+
         pvr_stats_t stat;
+	printf("get stats..\n");
         pvr_get_stats(&stat);
         printf("framerate1: %f\n", stat.frame_rate);
 
 	pvr_mem_reset();
-	timer_stop(TMU0);
 
 	return 0;
 }
