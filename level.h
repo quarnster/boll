@@ -13,11 +13,13 @@ public:
 
 
 private:
+/*
 	q3dTypeVertex	*vertex;
 	q3dTypeVertex	*finalPositions;
 	q3dTypeVertex	*positions;
 
 	pvr_vertex_t	*finalVertex;
+*/
 };
 
 #endif
