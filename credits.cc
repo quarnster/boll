@@ -449,7 +449,7 @@ VECTOR CharacterEntity::collideWithWorld(const VECTOR& pos, const VECTOR& vel) {
 }
 */
 
-#define LINENUM 90
+#define LINENUM 120
 static int width[LINENUM];
 
 static float fontSize = 24;
@@ -470,7 +470,7 @@ static char cred_text[LINENUM][45] = {
 	"",
 	"",
 	"",
-	"Fredrik aka quarn/Outbreak on the keys.",
+	"Fredrik on the keys now.",
 	"",
 	"This has been the busiest period in my",
 	"life as of yet, and I am pretty amazed",
@@ -479,10 +479,6 @@ static char cred_text[LINENUM][45] = {
 	"my wing chun training with neither of",
 	"these suffering too much.",
 	"",
-	"I think Bruce lee said it best when",
-	"he said:",
-	"",
-	"\"Use no limitation as limitation\"",
 	"",
 	"",
 	"I just wish that I had found out about",
@@ -495,9 +491,39 @@ static char cred_text[LINENUM][45] = {
 	"",
 	"",
 	"",
+	"It's just so hard to come up with an",
+	"idea for a game that's acctually fun",
+	"to play...",
+	"",
+	"What seems to be a good game on paper",
+	"might very well not be fun at all in",
+	"reality.",
+	"",
+	"We had so many ideas when we first",
+	"started to brainstorm about this games",
+	"concept.",
+	"",
+	"Most of them have been thrown away,",
+	"others where saved until \"later\"",
+	"because of the time constraints, but",
+	"very few of them are acctually in this",
+	"game now.",
+	"",
+	"But really, creating a game that is fun",
+	"to play and original is NOT very easy at",
+	"all.",
+	"",
+	"My respect for professional game",
+	"developers have definately grown over",
+	"the time that this game has been",
+	"developed.",
+	"",
+	"",
+	"",
 	"Acctually this is the first \"real\" game",
-	"that I've ever coded. Before this I've",
-	"only made \"snake\" (but I did it twice! ;))",
+	"that I've ever coded.",
+	"Before this I've only made \"snake\"",
+	"(but I did it twice! ;))",
 	"",
 	"Not that bad for a first timer eh?",
 	"",
@@ -557,9 +583,9 @@ Credits::Credits() {
 	frames[1].continuity = frames[2].continuity = 0.0f;
 	frames[1].bias = frames[2].bias = 1.0f;
 	frames[0].set(0, 480+fontSize, 0); frames[0].time = 0;
-	frames[1].set(0.8, 320+fontSize, 0); frames[1].time = 0.5;
-	frames[2].set(0.8, 160+fontSize, 0); frames[2].time = 14.0;
-	frames[3].set(0, 0-fontSize, 0); frames[3].time = 14.5;
+	frames[1].set(0.8, 320+fontSize, 0); frames[1].time = 0.3125;
+	frames[2].set(0.8, 160+fontSize, 0); frames[2].time = 8.75;
+	frames[3].set(0, 0-fontSize, 0); frames[3].time = 9.0625;
 	kFrame.generate(frames, 4);
 
 	sphere = generateSphere(6, 6);
@@ -648,13 +674,13 @@ void Credits::run() {
 
 		float time = (timer_ms_gettime64() - startTime) / 1000.0f;
 
-
 		// begin rendering
 		pvr_wait_ready();
 		pvr_scene_begin();
 
 		pvr_list_begin(PVR_LIST_OP_POLY);
 
+		plane.draw();
 //		q3dPolyhedronPaint(sphere, &cam, &sphereFiller);
 
 
@@ -685,7 +711,7 @@ void Credits::run() {
 		plx_fcxt_begin(fcxt);
 
 		for (int i = 0; i < LINENUM; i++) {
-			kFrame.getKey(frames, 4, &key, time - 5 - i*1*2);
+			kFrame.getKey(frames, 4, &key, time - 5 - i*1.25);
 			float y = key.y; //(int) (i * fontSize + 320 - time * 34);
 			if (y < 0) continue;
 			if (y > 480) break;

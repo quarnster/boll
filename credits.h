@@ -3,6 +3,7 @@
 
 #include <kos.h>
 #include <q3d.h>
+#include "effect/plane.h"
 
 class Credits {
 public:
@@ -12,6 +13,7 @@ public:
 	void run();
 
 private:
+	Plane	plane;
 	q3dTypeFiller torus1Filler;
 	q3dTypeFiller torus2Filler;
 
