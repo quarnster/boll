@@ -11,6 +11,8 @@ void loadSounds() {
 	sounds[BOUNCE2] = snd_sfx_load("bounce2.wav");
 	sounds[JUMP] = snd_sfx_load("jump.wav");
 	sounds[FALL] = snd_sfx_load("fall.wav");
+	sounds[MENU_CHANGE] = snd_sfx_load("menu-change.wav");
+	sounds[MENU_SELECT] = snd_sfx_load("menu-select.wav");
 }
 
 void freeSounds() {

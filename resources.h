@@ -13,6 +13,8 @@ enum {
 	BOUNCE2,
 	JUMP,
 	FALL,
+	MENU_CHANGE,
+	MENU_SELECT,
 	SOUND_NUM
 };
 
