@@ -119,10 +119,6 @@ void Player::update(Game *game) {
 			}
 		}
 
-		if (s->buttons & CONT_Y) {
-			printf("rotation.x = %f, zoom: %f\n", camera.rotation.x, camera.zoom);
-		}
-
 		if (s->buttons & CONT_X) {
 
 			if (!thrusting) {
@@ -303,10 +299,10 @@ And the final quaternion is obtained by Qx * Qy * Qz.
 		direction.y -= 0.075f;
 	}
 
-	if (dietime > 0 || (position.y < 0 && level < 0)) {
+	if (dietime > 0 || (position.y < 0/* && level < 0*/)) {
 		// we are falling into a hole or are outside of the level
 		if (dietime == 0) {
-			addScore(-50);
+			addScore(-5);
 			if (active) {
 				long lowest = 100000;
 				int idx = 0;
@@ -360,7 +356,7 @@ And the final quaternion is obtained by Qx * Qy * Qz.
 		color.b *= l;
 	}
 
-	if (scoreadd != 0) {
+	if (scoreadd != 0 && game->frame % 10 == 1) {
 		if (scoreadd < 0) {
 			score--;
 			scoreadd++;
@@ -371,7 +367,8 @@ And the final quaternion is obtained by Qx * Qy * Qz.
 	}
 
 	if (!game->gameended && active) {
-		scoreadd++;
+		if (game->frame % 30 == 1)
+			scoreadd++;
 		float l = 0.5f + fsin((gametime / 1000.0f)*3.141592 * 10) * 0.5f;
 		color.r = l;
 		color.g = l;
