@@ -99,6 +99,10 @@ extern matrix_t screen_matrix;
 bool print = false;
 bool pr = false;
 bool press = false;
+
+uint32 polysent;
+uint32 vertextest;
+
 void Level::draw() {
 
 
@@ -254,6 +258,7 @@ void Level::draw() {
 				color = 0xff00;
 			}
 */
+			vertextest += 4;
 			if (vertexScreen[v1].z < 0 ||
 				vertexScreen[v2].z < 0 ||
 				vertexScreen[v3].z < 0 ||
@@ -272,6 +277,7 @@ void Level::draw() {
 				int v6 = v2 + add;
 				int v7 = v3 + add;
 				int v8 = v4 + add;
+				vertextest += 4;
 				if (vertexScreen[v5].z < 0 ||
 					vertexScreen[v6].z < 0 ||
 					vertexScreen[v7].z < 0 ||
@@ -280,6 +286,7 @@ void Level::draw() {
 					continue;
 				}
 
+				polysent += 5 * 2; // count triangles
 				// left
 				vert = pvr_dr_target(state);
 				vert->x = vertexScreen[v1].x;
@@ -470,6 +477,7 @@ void Level::draw() {
 				int v6 = v2 - add;
 				int v7 = v3 - add;
 				int v8 = v4 - add;
+				vertextest += 4;
 				if (vertexScreen[v5].z < 0 ||
 					vertexScreen[v6].z < 0 ||
 					vertexScreen[v7].z < 0 ||
@@ -478,6 +486,7 @@ void Level::draw() {
 					continue;
 				}
 
+				polysent += 4 * 2;
 				// left
 				vert = pvr_dr_target(state);
 				vert->x = vertexScreen[v1].x;
@@ -664,6 +673,7 @@ void Level::draw() {
 				pvr_dr_commit(vert);
 */
 			} else {
+				polysent += 1 * 2;
 				// draw normal (flat)
 				vert = pvr_dr_target(state);
 				vert->x = vertexScreen[v1].x;
