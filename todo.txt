@@ -1,0 +1,54 @@
+game-modes:
+ - highest health/score
+ - most frags
+ - "capture the flag"
+ - "herre på täppan" under längst tid
+
+power ups:
+ - shield
+ - following particles
+ - + xx points
+ - speed up
+ - slow down
+
+menu:
+ - ball customizer
+ - level generator
+ - credits
+
+gameplay/other:
+ - draw level
+ - z-clipping
+ - collide with level
+ - getting hurt from spikes
+ - falling down holes
+ - collideing with other players
+ - turn into stone
+ - charge
+ - picking up powerups / health (points)
+ - shooting points
+ - using powerups
+ - score/health/powerup-status display
+ - pausing game
+ - finished game screen
+
+sound list:
+ - bounce into wall / floor
+ - shooting score
+ - score shot hitting wall
+ - score shot hitting player
+ - falling into hole
+ - getting hurt by nails
+ - getting squeezed by a stone
+ - stone hitting ground
+ - charge / chargerelease
+ - jump
+ - getting a health bonus
+ - getting a power up
+ - countdown (10 -> 1)
+ - voice saying "go" or something when game starts (previous countdown sounds will be used for counting 3 -> 1)
+ - voice saying something when game ends (previous countdown sounds will be used for counting 10 -> 1)
+ - menu item change
+ - menu item selected
+ - game paused
+ - game unpaused
