@@ -24,6 +24,9 @@ private:
 	int jumpstart;
 	bool jumpplay;
 
+	int dietime;
+
+	bool bice;
 };
 
 #endif
