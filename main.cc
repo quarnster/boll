@@ -1,4 +1,5 @@
 #include <kos.h>
+#include <math.h>
 #include <png/png.h>
 
 #include <q3d.h>
@@ -79,14 +80,14 @@ q3dTypePolyhedron *generateCube() {
 
 	cube->vertexLength = 8;
 	cube->vertex = (q3dTypeVertex*) malloc(8 * sizeof(q3dTypeVertex));
-	q3dVertexSet3f(&cube->vertex[0], -1.0f,  1.0f, -1.0f);
-	q3dVertexSet3f(&cube->vertex[1], -1.0f, -1.0f, -1.0f);
-	q3dVertexSet3f(&cube->vertex[2],  1.0f, -1.0f, -1.0f);
-	q3dVertexSet3f(&cube->vertex[3],  1.0f,  1.0f, -1.0f);
-	q3dVertexSet3f(&cube->vertex[4],  1.0f,  1.0f,  1.0f);
-	q3dVertexSet3f(&cube->vertex[5],  1.0f, -1.0f,  1.0f);
-	q3dVertexSet3f(&cube->vertex[6], -1.0f, -1.0f,  1.0f);
-	q3dVertexSet3f(&cube->vertex[7], -1.0f,  1.0f,  1.0f);
+	q3dVertexSet3f(&cube->vertex[0], -1.0f,  1.0f,  1.0f);
+	q3dVertexSet3f(&cube->vertex[1], -1.0f, -1.0f,  1.0f);
+	q3dVertexSet3f(&cube->vertex[2],  1.0f, -1.0f,  1.0f);
+	q3dVertexSet3f(&cube->vertex[3],  1.0f,  1.0f,  1.0f);
+	q3dVertexSet3f(&cube->vertex[4],  1.0f,  1.0f, -1.0f);
+	q3dVertexSet3f(&cube->vertex[5],  1.0f, -1.0f, -1.0f);
+	q3dVertexSet3f(&cube->vertex[6], -1.0f, -1.0f, -1.0f);
+	q3dVertexSet3f(&cube->vertex[7], -1.0f,  1.0f, -1.0f);
 
 	cube->polygonLength = 6;
 	cube->polygon = (q3dTypePolygon*) malloc(6 * sizeof(q3dTypePolyhedron));
@@ -265,35 +266,18 @@ int main(int argc, char **argv) {
 	q3dTypeCamera cam;
 	q3dTypeFiller fillerStandard;
 	q3dTypeFiller fillerCell;
-	q3dTypeFiller fillerTexture;
-	q3dTypeFiller fillerEnvironment;
-	q3dTypeFiller fillerWireframe;
 
 	// Initialize KOS
 	pvr_init_defaults();
 	vid_set_mode(DM_640x480, PM_RGB565);
 
 	printf("generate cube\n");
-	cube2 = generateTorus(20, 2);
-//	cube2 = generateCube();
-//	cube2->vertexmode |= Q3D_ENVMAPPED;
+//	cube2 = generateTorus(20, 2);
+	cube2 = generateCube();
 
 	q3dMatrixInit();
 	q3dFillerStandardInit(&fillerStandard);
-
 	q3dFillerCellInit(&fillerCell);
-	q3dFillerTextureInit(&fillerTexture);
-	q3dFillerEnvironmentInit(&fillerEnvironment);
-	q3dFillerWireframeInit(&fillerWireframe);
-
-//	filler.drawOutline = false;
-//	NormalFiller nFiller;
-
-	fillerTexture.defaultCxt = loadImage("/rd/amiga.png");
-	pvr_poly_compile(&fillerTexture.defaultHeader, &fillerTexture.defaultCxt);
-
-	fillerEnvironment.defaultCxt = loadImage("/rd/env.png");
-	pvr_poly_compile(&fillerEnvironment.defaultHeader, &fillerEnvironment.defaultCxt);
 
 	pvr_set_bg_color(1.0f, 1.0f, 1.0f);
 
@@ -302,12 +286,7 @@ int main(int argc, char **argv) {
 	q3dPolyhedronCompile(cube2);
 	cube2->material.header = fillerStandard.defaultHeader;
 
-//	cube2->_pos.y = 2;
-//	cube2->pos.x = 2;
-//	cube2->_pos.z = -20;
-//	gluPerspective(90, 480.0f / 640.0f, 0.1f, 100.0f);
 	cam._pos.z = 15;
-//	cam.positionate();
 
 	// Get basic stuff initialized
 
@@ -316,11 +295,21 @@ int main(int argc, char **argv) {
 
 	printf("enabled: %d\n", timer_ints_enabled(TMU0));
 	printf("set handler: %d\n", irq_set_handler(TIMER_IRQ, &handle_time));
-//---	c = maple_first_controller();
 
 	qtime = 0;
 	q3dTypeAngle agl;
 	q3dAngleInit(&agl);
+
+	q3dTypeVector dir;
+	q3dVectorInit(&dir);
+
+	q3dTypeVector rot;
+	q3dVectorInit(&rot);
+
+	float rotation = 0;
+	bool jump = false;
+	int jumpstart = 0;
+	bool jumpok = true;
 
 	int done = 0;
 	while(!done) {
@@ -330,49 +319,88 @@ int main(int argc, char **argv) {
 				done = true;
 			}
 		MAPLE_FOREACH_END();
+		maple_device_t *dev = maple_enum_dev(0, 0);
+		if (dev) {
+			cont_state_t* s = (cont_state_t*) maple_dev_status(dev);
+			float cx = s->joyx / 4096.0f;
+			float cy = s->joyy / 4096.0f;
+
+			if (jumpok && s->buttons & CONT_A) {
+				jump = true;
+				if ((qtime - jumpstart) > 250) {
+					jumpok = false;
+				}
+//			} else if (qtime - jumpstart > 20) {
+//				jump = 0.001f * (qtime - jumpstart);
+//				jumpstart = qtime;
+			} else {
+				if (jump) {
+					jump = false;
+					jumpok = false;
+				}
+				jumpstart = qtime;
+			}
+
+//			cube2->_pos.x += cx;
+//			cube2->_pos.z += cy;
+
+//			rotation += cx / 30.0f;
+//			rot.x = fcos(rotation);
+//			rot.z = fsin(rotation);
+
+			// update position
+			// TODO: collosion check 
+//			if (player->controller.y < 0) player->controller.y = 0;
+			dir.x += cx;
+			dir.z += cy;
+			dir.x = dir.x < -2 ? -2 : dir.x > 2 ? 2 : dir.x;
+			dir.z = dir.z < -2 ? -2 : dir.z > 2 ? 2 : dir.z;
+
+			dir.x *= 0.97f;
+			dir.z *= 0.97f;
+
+			
+
+//			if (dir.y < 0) {
+			if (!jumpok || !jump) {
+				dir.y += 0.1f;
+			} else if (jump) {
+				cube2->_pos.y -= 0.5f;
+				printf("jump\n");
+			}
+//			}
 
 
-//		cam._pos.z = fsin(qtime/500.0f)*100;
-		cube2->_agl.y = -(qtime/1000.0f)*1.1f;
-		cube2->_agl.x = (qtime/500.0f);
+			cube2->_pos.x += dir.x;
+			cube2->_pos.z += dir.z;
+			cube2->_pos.y += dir.y;
 
-		agl.y = qtime/1000.0f;
+			if (cube2->_pos.y > 0) {
+				cube2->_pos.y = 0;
+				dir.y = -dir.y * 0.75;
+//				if (fabs(dir.y) < 0.1) jumpok = true;
+			}
+			if (cube2->_pos.y > -1) jumpok = true;
+			else if (!jump) jumpok = false;
+		}
+
+
+		cube2->_agl.z -= dir.x * 0.25;
+		cube2->_agl.x += dir.z * 0.25;
+
+//		agl.y = qtime/1000.0f;
 		q3dCameraSetRotation(&cam, &agl);
-//		cam._pos.z = 20 + fsin(qtime/1000.0f);
 
 		// begin render with TA
-//		pvr_wait_ready();
 		pvr_scene_begin();
 
 		pvr_list_begin(PVR_LIST_OP_POLY);
 
-		cube2->_pos.x = fsin((1/5.0f)*2*F_PI) * 8;
-		cube2->_pos.y = fcos((1/5.0f)*2*F_PI) * 8;
-		cube2->material.header = fillerStandard.defaultHeader;
-		q3dColorSet3f(&cube2->material.color, 0.5f, 0.25f, 1.0f);
-		q3dPolyhedronPaint(cube2, &cam, &fillerStandard);
-
-		cube2->_pos.x = fsin((2/5.0f)*2*F_PI) * 8;
-		cube2->_pos.y = fcos((2/5.0f)*2*F_PI) * 8;
+//		cube2->_pos.x = fsin((2/5.0f)*2*F_PI) * 8;
+//		cube2->_pos.y = fcos((2/5.0f)*2*F_PI) * 8;
 		cube2->material.header = fillerCell.defaultHeader;
 		q3dColorSet3f(&cube2->material.color, 1.0f, 0.5f, 0.25f);
 		q3dPolyhedronPaint(cube2, &cam, &fillerCell);
-
-		cube2->_pos.x = fsin((3/5.0f)*2*F_PI) * 8;
-		cube2->_pos.y = fcos((3/5.0f)*2*F_PI) * 8;
-		cube2->material.header = fillerTexture.defaultHeader;
-		q3dColorSet4f(&cube2->material.color, 1.0f, 1.0f, 1.0f, 1.0f);
-		q3dPolyhedronPaint(cube2, &cam, &fillerTexture);
-
-		cube2->_pos.x = fsin((4/5.0f)*2*F_PI) * 8;
-		cube2->_pos.y = fcos((4/5.0f)*2*F_PI) * 8;
-		cube2->material.header = fillerEnvironment.defaultHeader;
-		q3dPolyhedronPaint(cube2, &cam, &fillerEnvironment);
-
-		cube2->_pos.x = fsin((5/5.0f)*2*F_PI) * 8;
-		cube2->_pos.y = fcos((5/5.0f)*2*F_PI) * 8;
-		cube2->material.header = fillerStandard.defaultHeader;
-		q3dPolyhedronPaint(cube2, &cam, &fillerWireframe);
 
 		pvr_list_finish();
 
@@ -381,7 +409,7 @@ int main(int argc, char **argv) {
 	}
         pvr_stats_t stat;
         pvr_get_stats(&stat);
-                
+
         printf("framerate1: %f\n", stat.frame_rate);
 
 	printf("pvr_mem_free\n");
