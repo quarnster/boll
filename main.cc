@@ -90,7 +90,7 @@ q3dTypePolyhedron * generateTest(float max) {
 	return cube;
 }
 
-uint32 gametime = 0;
+uint64 gametime = 0;
 void handle_time(irq_t source, irq_context_t *context) {
 	int blah = timer_clear(TMU0);
 	if (!blah) gametime+=2;
@@ -105,16 +105,18 @@ pvr_init_params_t pvr_params = {
 
 extern "C" int snd_init();
 
+
 bool done2 = false;
 void ccallback(uint8 addr, uint32 buttons) {
 	done2 = true;
 }
 
 
+
 enum {
 	GAME = 0,
-	LEVEL,
-	BALL,
+//	LEVEL,
+//	BALL,
 	CREDITS,
 	MAINMENU,
 	NTSCMENU
