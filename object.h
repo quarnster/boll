@@ -3,12 +3,13 @@
 
 #include <q3d.h>
 #include "lib/Point3D.h"
+#include "game.h"
 
+class Game;
 class Object {
 public:
-	Object();
-
-	void update();
+	virtual void update(Game *game) = 0;
+	virtual void draw() = 0;
 
 	Point3D		position;
 	Point3D		rotation;
