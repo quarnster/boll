@@ -5,9 +5,11 @@
 
 TARGET = game.elf
 OBJS = \
-	mainmenu.o \
+	game.o \
+	level.o \
 	object.o \
 	player.o \
+	mainmenu.o \
 	main.o \
 	romdisk.o
 
