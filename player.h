@@ -3,7 +3,7 @@
 
 #include <q3d.h>
 #include "object.h"
-#include "game.h"
+#include "resources.h"
 
 class Game;
 
@@ -16,9 +16,13 @@ public:
 	void update(Game *game);
 	void draw();
 
-	float zoom;
+	int score;
+
+	float camzoom;
 	float camheight;
 	float camadd;
+	float camagl;
+
 	q3dTypeColor color;
 private:
 	int port;
