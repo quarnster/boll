@@ -12,8 +12,10 @@ extern uint32 vertextest;
 
 
 q3dTypePolyhedron *sphere;
+q3dTypePolyhedron *scorePolyhedron;
 q3dTypeFiller fillerPlayers;
 q3dTypeFiller fillerLevel;
+q3dTypeFiller fillerScore;
 
 q3dTypeMatrix screen_matrix __attribute__((aligned(32))) = {
     { 640/4.0f, 0.0f, 0.0f, 0.0f },
@@ -25,9 +27,10 @@ q3dTypeMatrix screen_matrix __attribute__((aligned(32))) = {
 Game::Game() {
 	q3dMatrixInit();
 
-	sphere = generateSphere();
+	sphere = generateSphere(6, 6);
+	scorePolyhedron = generateSphere(3, 3);
+
 	q3dFillerCellInit(&fillerPlayers);
-//	q3dFillerStandardInit(&fillerPlayers);
 	fillerPlayers.defaultCxt.gen.clip_mode = PVR_USERCLIP_INSIDE;
 	fillerPlayers.defaultCxt.gen.fog_type = PVR_FOG_TABLE;
 	pvr_poly_compile(&fillerPlayers.defaultHeader, &fillerPlayers.defaultCxt);
@@ -37,6 +40,11 @@ Game::Game() {
 	fillerLevel.defaultCxt.gen.clip_mode = PVR_USERCLIP_INSIDE;
 	fillerLevel.defaultCxt.gen.fog_type = PVR_FOG_TABLE;
 	pvr_poly_compile(&fillerLevel.defaultHeader, &fillerLevel.defaultCxt);
+
+	q3dFillerStandardInit(&fillerScore);
+	fillerScore.defaultCxt.gen.clip_mode = PVR_USERCLIP_INSIDE;
+//	fillerScore.defaultCxt.gen.fog_type = PVR_FOG_TABLE;
+	pvr_poly_compile(&fillerScore.defaultHeader, &fillerScore.defaultCxt);
 
 	q3dCameraInit(&cam);
 	cam._pos.y = 5;
@@ -89,6 +97,9 @@ void Game::update() {
 	for (int i = 0; i < 4; i++)
 		player[i].update(this);
 
+	for (int i = 0; i < MAX_SCORE_NUM; i++) {
+		score[i].update(this);
+	}
 	level.update();
 }
 
@@ -112,7 +123,8 @@ void Game::draw() {
 	// draw..
 	for (int i = 0; i < 4; i++) {
 		q3dMatrixIdentity();
-		q3dMatrixTranslate(0,-4.5f-player[i].camheight-player[i].camadd, player[i].zoom /*10*/);
+		q3dMatrixTranslate(0,-4.5f-player[i].camheight-player[i].camadd, player[i].camzoom /*10*/);
+		q3dMatrixRotateX(player[i].camagl);
 		q3dMatrixRotateY(player[i].rotation.y);
 		q3dMatrixTranslate(-player[i].position.x, 0/*-player[i].position.y*/,-player[i].position.z);
 
@@ -160,8 +172,33 @@ void Game::draw() {
 			q3dMatrixLoad(&_q3dMatrixCamera);
 			q3dVertexSet3f(&vert, player[j].position.x, player[j].position.y, player[j].position.z);
 			mat_trans_single3(vert.x, vert.y, vert.z);
-			if (vert.z >= 0)
-				player[j].draw();
+			if (vert.z < 3)
+				continue;
+			if (vert.z > 100)
+				continue;
+			if (vert.x > vert.z + 4)
+				continue;
+			if (vert.x < -vert.z-4)
+				continue;
+
+			player[j].draw();
+		}
+		for (int j = 0; j < MAX_SCORE_NUM; j++) {
+			q3dMatrixLoad(&_q3dMatrixCamera);
+			q3dVertexSet3f(&vert, score[j].position.x, score[j].position.y, score[j].position.z);
+			mat_trans_single3(vert.x, vert.y, vert.z);
+
+			// test if outside viewing frustum
+			if (vert.z < 0)
+				continue;
+			if (vert.z > 100)
+				continue;
+			if (vert.x > vert.z + 2)
+				continue;
+			if (vert.x < -vert.z-2)
+				continue;
+
+			score[j].draw();
 		}
 
 		q3dMatrixIdentity();
@@ -232,6 +269,11 @@ void Game::draw() {
 
 	w.y += 32;
 	plx_fcxt_setpos_pnt(fcxt, &w);
+	sprintf(buf, "score: %d", player[0].score);
+	plx_fcxt_draw(fcxt, buf);
+/*
+	w.y += 32;
+	plx_fcxt_setpos_pnt(fcxt, &w);
 	sprintf(buf, "tests: %d", vertextest);
 	plx_fcxt_draw(fcxt, buf);
 
@@ -243,7 +285,7 @@ void Game::draw() {
 	plx_fcxt_setpos_pnt(fcxt, &w);
 	sprintf(buf, "rot: (%f, %f, %f)", player[0].rotation.x, player[0].rotation.y, player[0].rotation.z);
 	plx_fcxt_draw(fcxt, buf);
-
+*/
 	plx_fcxt_end(fcxt);
 #endif
 
