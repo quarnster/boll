@@ -57,6 +57,8 @@ The whole day was used trying to get the level to draw. Not as much getting it t
 trying to optimize it so we'll get a decent framerate in 4-player mode. Read lots of documents
 about quadtrees and octrees. Messed around a LOT trying to get frustum culling to work.
 
+
+
 Thursday, January 29
 
 Never mind what I said earlier about the dc not being able to multitexture... It CAN indeed do multitexturing!!!
@@ -168,3 +170,33 @@ Worked on clipping code and level rendering.
 Tuesday, February 24
 
 Made a mainmenu. More levelhandling work. Centralized resource-handling.
+
+
+
+????, ?????, ??
+
+Added score. Made balls bigger. Camera work.
+
+
+
+Tuesday, March 9
+
+I've been veeery busy with school and everything.. It's examination time now
+you know.. And also I bumped up a grade in my kung fu training yesterday.. niiiiice.
+
+Anyway, I added scoredisplay for all players. Added 10 sec count down. Basic "scoreboard"
+Increased the number of score objects, added thrust-functionality to the players.
+
+
+
+Thursday, March 11
+
+Quaternions implemented so the balls are now rolling the way they are supposed to roll! \o/ horaaayy \o/
+I also made the balls textured so we easily can see this :)
+
+
+
+Friday, March 12
+
+Cdda is now playing for everything.
+

@@ -1,7 +1,7 @@
-look-at camera
-spline-svans-kamera
-scoreboard
-bollar rullar
+-+ look-at camera
+- spline-svans-kamera
++ scoreboard
++ bollar rullar
 
 
 game-modes:
