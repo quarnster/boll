@@ -134,7 +134,6 @@ int main(int argc, char **argv) {
 #endif
 
 #ifndef	BETA
-
 	// Select the correct video-mode
 	if (vid_check_cable() == CT_VGA) {
 		vid_set_mode(DM_640x480_VGA, PM_RGB565);
@@ -146,7 +145,7 @@ int main(int argc, char **argv) {
 		vid_set_mode(DM_640x480_NTSC_IL, PM_RGB565);
 	}
 #else
-	vid_set_mode(DM_640x480_NTSC_IL, PM_RGB565);
+	vid_set_mode(DM_640x480, PM_RGB565);
 #endif
 
 	pvr_set_bg_color(1.0f, 1.0f, 1.0f);
@@ -157,9 +156,7 @@ int main(int argc, char **argv) {
 
 	irq_set_handler(TIMER_IRQ, &handle_time);
 
-//	snd_init();
-//	sfxhnd_t bounce = snd_sfx_load("/pc/tmp/bounce.wav");
-//	snd_sfx_play(bounce, 15, 15);
+	snd_init();
 	qtime = 0;
 
 	Game game;
