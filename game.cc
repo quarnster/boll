@@ -10,6 +10,7 @@ static point_t w;
 extern uint32 polysent;
 extern uint32 vertextest;
 
+#define GAMELENGTH 0.25
 
 q3dTypePolyhedron *sphere;
 q3dTypePolyhedron *scorePolyhedron;
@@ -25,6 +26,8 @@ q3dTypeMatrix screen_matrix __attribute__((aligned(32))) = {
 };
 
 Game::Game() {
+	gameended = false;
+
 	q3dMatrixInit();
 
 	sphere = generateSphere(6, 6);
@@ -67,6 +70,13 @@ Game::Game() {
 
 	pvr_poly_compile(&crossHeader, &cxt);
 
+	pvr_poly_cxt_col(
+		&cxt,
+		PVR_LIST_TR_POLY
+	);
+
+	pvr_poly_compile(&fadeHeader, &cxt);
+
 	w.x = 20;
 	w.y = 32;
 	w.z = 100;
@@ -82,12 +92,33 @@ Game::~Game() {
 	printf("done!\n");
 }
 
-extern bool done;
-extern uint32 qtime;
+extern uint32 gametime;
+void Game::reset() {
+	done = false;
+	gamestart = timer_ms_gettime64();
+	gametime = 0;
+	gameended = false;
+
+	for (int i = 0; i < 4; i++)
+		player[i].score = 0;
+
+	player[0].position.set( 0,  0,  +2);
+	player[1].position.set( 0,  10, +2);
+	player[2].position.set(-2,  2, -2);
+	player[3].position.set(+2,  2, -2);
+
+}
+
+//extern bool done;
 void Game::run() {
-	while (!done/*true*/) {
+	reset();
+	while (!done /*&& (gametime < 60 * 1000 * GAMELENGTH)*/) {
 		// TODO: check for exit.. ?
-		qtime = timer_ms_gettime64();
+		gametime = timer_ms_gettime64() - gamestart;
+		if (gametime >= 60 * 1000 * GAMELENGTH) {
+			gameended = true;
+		}
+
 		update();
 		draw();
 	}
@@ -253,10 +284,18 @@ void Game::draw() {
 
 	pvr_list_begin(PVR_LIST_TR_POLY);
 
-#ifdef BETA
-	w.y = 32;
+	w.y = 60;
+	w.x = 20;
+	w.z = 100;
 	plx_fcxt_begin(fcxt);
+	plx_fcxt_setsize(fcxt, 16);
+	plx_fcxt_setcolor4f(fcxt, 1.0, 1.0, 1.0, 1.0);
 
+	plx_fcxt_setpos_pnt(fcxt, &w);
+	sprintf(buf, "%d", player[0].score);
+	plx_fcxt_draw(fcxt, buf);
+
+#ifdef BETA
 	w.y += 32;
 	plx_fcxt_setpos_pnt(fcxt, &w);
 	sprintf(buf, "time: %d", end - start);
@@ -265,11 +304,6 @@ void Game::draw() {
 	w.y += 32;
 	plx_fcxt_setpos_pnt(fcxt, &w);
 	sprintf(buf, "polygons: %d", polysent);
-	plx_fcxt_draw(fcxt, buf);
-
-	w.y += 32;
-	plx_fcxt_setpos_pnt(fcxt, &w);
-	sprintf(buf, "score: %d", player[0].score);
 	plx_fcxt_draw(fcxt, buf);
 /*
 	w.y += 32;
@@ -286,9 +320,112 @@ void Game::draw() {
 	sprintf(buf, "rot: (%f, %f, %f)", player[0].rotation.x, player[0].rotation.y, player[0].rotation.z);
 	plx_fcxt_draw(fcxt, buf);
 */
-	plx_fcxt_end(fcxt);
+	w.y = 60;
 #endif
 
+	w.x += 320;
+	plx_fcxt_setpos_pnt(fcxt, &w);
+	sprintf(buf, "%d", player[1].score);
+	plx_fcxt_draw(fcxt, buf);
+
+	w.y += 240-32;
+	plx_fcxt_setpos_pnt(fcxt, &w);
+	sprintf(buf, "%d", player[3].score);
+	plx_fcxt_draw(fcxt, buf);
+
+	w.x -= 320;
+	plx_fcxt_setpos_pnt(fcxt, &w);
+	sprintf(buf, "%d", player[2].score);
+	plx_fcxt_draw(fcxt, buf);
+
+	float sec = gametime - (GAMELENGTH * 1000 * 60 - 10 * 1000);
+	sec /= 1000.0f;
+	if (sec > 0 && sec <= 11) {
+		int sec2 = (int) sec;
+		w.x = 320-32;
+		w.y = 240;
+		float alpha = 1 - (sec - sec2);
+		if (alpha < 0) alpha = 0;
+		sec2 = 10 - sec2;
+
+		plx_fcxt_setcolor4f(fcxt, alpha, 0.75, 0, 0);
+		plx_fcxt_setsize(fcxt, 128);
+		plx_fcxt_setpos_pnt(fcxt, &w);
+		sprintf(buf, "%d", sec2);
+		plx_fcxt_draw(fcxt, buf);
+	}
+
+	if (sec > 10) {
+		float alpha = (sec - 10) * 0.125;
+		if (alpha > 0.75) alpha = 0.75;
+
+		int win = -1;
+		int winscore = -100000;
+		for (int i = 0; i < 4; i++) {
+			if (player[i].score > winscore) {
+				winscore = player[i].score;
+				win = i;
+			}
+		}
+		w.x = 20;
+		w.y = 240;
+		w.z = 1001;
+
+		plx_fcxt_setcolor4f(fcxt, alpha, 1.0, 1.0, 1.0);
+		plx_fcxt_setsize(fcxt, 64);
+		plx_fcxt_setpos_pnt(fcxt, &w);
+		sprintf(buf, "player %d wins!", win+1);
+		plx_fcxt_draw(fcxt, buf);
+		plx_fcxt_end(fcxt);
+
+		// fade out the rest
+		pvr_prim(&fadeHeader, sizeof(pvr_poly_hdr_t));
+		pvr_dr_state_t state;
+		pvr_dr_init(state);
+		pvr_vertex_t *vert;
+
+
+		uint32 color = PVR_PACK_COLOR(alpha, 0.0f, 0.0f, 0.0f);
+
+		vert = pvr_dr_target(state);
+		vert->flags = PVR_CMD_VERTEX;
+		vert->argb = color;
+		vert->z = 1000;
+		vert->x = 0; vert->y = 480;
+		pvr_dr_commit(vert);
+
+		vert = pvr_dr_target(state);
+		vert->flags = PVR_CMD_VERTEX;
+		vert->argb = color;
+		vert->z = 1000;
+		vert->x = 0; vert->y = 0;
+		pvr_dr_commit(vert);
+
+		vert = pvr_dr_target(state);
+		vert->flags = PVR_CMD_VERTEX;
+		vert->argb = color;
+		vert->z = 1000;
+		vert->x = 640; vert->y = 480;
+		pvr_dr_commit(vert);
+
+		vert = pvr_dr_target(state);
+		vert->argb = color;
+		vert->flags = PVR_CMD_VERTEX_EOL;
+		vert->z = 1000;
+		vert->x = 640; vert->y = 0;
+		pvr_dr_commit(vert);
+
+	} else {
+		plx_fcxt_end(fcxt);
+	}
+
+	if (sec > 14) {
+		MAPLE_FOREACH_BEGIN(MAPLE_FUNC_CONTROLLER, cont_state_t, st)
+			if (st->buttons & CONT_START || st->buttons & CONT_A) {
+				done = true;
+			}
+		MAPLE_FOREACH_END()
+	}
 	pvr_list_finish();
 
 	pvr_scene_finish();
