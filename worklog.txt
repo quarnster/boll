@@ -56,3 +56,17 @@ Wednesday, January 28
 The whole day was used trying to get the level to draw. Not as much getting it to draw as to
 trying to optimize it so we'll get a decent framerate in 4-player mode. Read lots of documents
 about quadtrees and octrees. Messed around a LOT trying to get frustum culling to work.
+
+Thursday, January 29
+
+Never mind what I said earlier about the dc not being able to multitexture... It CAN indeed do multitexturing!!!
+\o/ Hooooraaayyy! \o/
+Send level vertices using direct rendering (pretty good speed update). Did some more work getting frustum culling
+to work.
+
+
+
+Friday, January 30
+
+Still not 100% correct frustum culling... Bought a 3d-programming book ;)
+
