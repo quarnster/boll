@@ -5,6 +5,7 @@
 #include <q3d.h>
 
 // #include "player.h"
+#include "ntscmenu.h"
 #include "game.h"
 
 q3dTypePolyhedron *generatePlane(float size) {
@@ -90,24 +91,9 @@ void handle_time(irq_t source, irq_context_t *context) {
 	if (!blah) qtime+=2;
 }
 
-extern uint8 romdisk[];
-
 KOS_INIT_FLAGS(INIT_DEFAULT | INIT_MALLOCSTATS);
-KOS_INIT_ROMDISK(romdisk);
-/*
-void init_pvr() {
-	pvr_init_params_t params = {
-		// Enable opaque and translucent polygons with size 16 
-		{ PVR_BINSIZE_16, PVR_BINSIZE_0, PVR_BINSIZE_16, PVR_BINSIZE_0, PVR_BINSIZE_0 },
-		
-		// Vertex buffer size 512K 
-		512*1024
-	};      
 
-	pvr_init(&params);
-}
-*/
-pvr_poly_cxt_t loadImage(char *name) {
+pvr_poly_cxt_t loadImage(char *name, int list) {
 	pvr_poly_cxt_t	cxt;
 	pvr_ptr_t	ptr;
 	uint32		width;
@@ -121,7 +107,7 @@ pvr_poly_cxt_t loadImage(char *name) {
 
 	pvr_poly_cxt_txr(
 		&cxt,
-		PVR_LIST_OP_POLY,
+		list,
 		PVR_TXRFMT_RGB565 | PVR_TXRFMT_TWIDDLED,
 		width,
 		height,
@@ -140,7 +126,25 @@ void ccallback(uint8 addr, uint32 buttons) {
 int main(int argc, char **argv) {
 	// Initialize KOS
 	pvr_init_defaults();
-	vid_set_mode(DM_640x480, PM_RGB565);
+
+#ifdef BETA
+	fs_chdir("/pc/home/quarn/code/dreamcast/game/data");
+#else
+	fs_chdir("/cd/data");
+#endif
+
+	// Select the correct video-mode
+	if (vid_check_cable() == CT_VGA) {
+		vid_set_mode(DM_640x480_VGA, PM_RGB565);
+	} else if (flashrom_get_region() == FLASHROM_REGION_EUROPE) {
+		vid_set_mode(DM_640x480_PAL_IL,PM_RGB565);
+#ifndef	BETA
+		NtscMenu m;
+		m.showMenu();
+#endif
+	} else {
+		vid_set_mode(DM_640x480_NTSC_IL, PM_RGB565);
+	}
 
 	pvr_set_bg_color(1.0f, 1.0f, 1.0f);
 
