@@ -37,6 +37,8 @@ private:
 	int dietime;
 
 	bool bice;
+
+	q3dTypeQuaternion qRot;
 };
 
 #endif

@@ -15,6 +15,8 @@ Player::Player() : Object() {
 
 	camagl = 3.141592 / 8;
 	camzoom = 15;
+
+	q3dQuaternionInit(&qRot);
 }
 
 Player::~Player() {
@@ -133,6 +135,30 @@ void Player::update(Game *game) {
 	rotation.x -= direction.x * 0.25;
 	rotation.z += direction.z * 0.25;
 
+	float mul = 3.1415927 * 2 * 0.25 * 0.33;
+	float a = -direction.z * mul * 0.5;
+	static q3dTypeQuaternion qx;
+	qx.w = cos(a);
+	qx.x = sin(a);
+	qx.y = qx.z = 0;
+
+	a = direction.x * mul * 0.5;
+	static q3dTypeQuaternion qz;
+	qz.w = cos(a);
+	qz.x = qz.y = 0;
+	qz.z = sin(a);
+
+	q3dQuaternionNormalize(&qx);
+	q3dQuaternionNormalize(&qz);
+/*
+Qx = [ cos(a/2), (sin(a/2), 0, 0)]
+Qy = [ cos(b/2), (0, sin(b/2), 0)]
+Qz = [ cos(c/2), (0, 0, sin(c/2))]
+
+And the final quaternion is obtained by Qx * Qy * Qz.
+*/
+	q3dQuaternionMul(&qx, &qz);
+	q3dQuaternionMul(&qRot, &qx);
 //	q3dColorSet3f(&color, 0.0f, 1.0f, 0.0f);
 	// do collision detection between spheres.
 	// this sphere has allready been tested against the previous
@@ -259,20 +285,28 @@ void Player::draw() {
 
 //	q3dVectorSet3f(&v, 1, 0, 0);
 
-	
 
 	q3dColorSetV(&sphere->material.color, &color);
+
+	q3dQuaternionToMatrix(&qRot);
 
 	q3dMatrixLoad(&_q3dMatrixCamera);
 	q3dMatrixTranslate(position.x, position.y, position.z);
 	q3dMatrixScale(3.0f, 3.0f, 3.0f);
+
+	q3dMatrixApply(&_q3dMatrixTemp);
 	q3dMatrixStore(&_q3dMatrixTemp);
 
 	q3dMatrixLoad(&_q3dMatrixPerspective);
 	q3dMatrixApply(&_q3dMatrixTemp);
 
 	q3dMatrixTransformPVR(sphere->vertex, &sphere->_finalVertex[0].x, sphere->vertexLength, sizeof(pvr_vertex_t));
-	q3dMatrixTransformNormals(sphere->_uVertexNormal, sphere->_vertexNormal, sphere->vertexLength);
+//	q3dMatrixIdentity();
+//	q3dMatrixRotateY(rotation.y);
+//	q3dQuaternionToMatrix(&qRot);
+//	q3dMatrixApply(&_q3dMatrixTemp);
+//	q3dMatrixStore(&_q3dMatrixTemp);
+//	q3dMatrixTransformNormals(sphere->_uVertexNormal, sphere->_vertexNormal, sphere->vertexLength);
 
 	fillerPlayers.update(sphere);
 	pvr_prim(&fillerPlayers.defaultHeader, sizeof(pvr_poly_hdr_t));
