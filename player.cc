@@ -9,6 +9,12 @@ Player::Player() : Object() {
 	jumpplay = false;
 	previousButtons = 0;
 	dietime = 0;
+
+	thrusting = false;
+	thrusttime = 0;
+
+	camagl = 3.141592 / 8;
+	camzoom = 15;
 }
 
 Player::~Player() {
@@ -20,7 +26,7 @@ void Player::setController(int port) {
 
 extern q3dTypePolyhedron *sphere;
 extern q3dTypeFiller fillerPlayers;
-extern uint32 qtime;
+extern uint32 gametime;
 
 void Player::update(Game *game) {
 
@@ -53,10 +59,10 @@ void Player::update(Game *game) {
 	}
 	bool inair = position.y >= level + 0.1f + ballradius;
 
-	if (!dietime && dev != NULL && dev->info.functions & MAPLE_FUNC_CONTROLLER) {
+	if (!game->gameended && !dietime && dev != NULL && dev->info.functions & MAPLE_FUNC_CONTROLLER) {
 		cont_state_t* s = (cont_state_t*) maple_dev_status(dev);
 		float cx = s->joyx / 2048.0f;
-		float speed = -s->joyy / 8000.0f;
+		float speed = -s->joyy / 7000.0f;
 
 		if (s->buttons & CONT_DPAD_UP) {
 			camagl += 1.0f / 64.0f;
@@ -77,17 +83,32 @@ void Player::update(Game *game) {
 		else if (camagl > 3.141592/2) camagl = 3.141592/2;
 
 		if (s->buttons & CONT_A) {
-			if (jumpplay && (qtime - jumpstart) < 400) {
+			if (jumpplay && (gametime - jumpstart) < 400) {
 				direction.y = 0.65f;
 			}
-			if (!jumpplay && (qtime - jumpstart) < 125) {
+			if (!jumpplay && (gametime - jumpstart) < 125) {
 				snd_sfx_play(sounds[JUMP], 255, 0);
 				jumpplay = true;
 			}
 		} else {
 			if (!inair) {
-				jumpstart = qtime;
+				jumpstart = gametime;
 				jumpplay = false;
+			}
+		}
+
+		if (s->buttons & CONT_X) {
+			if (thrusting && (gametime - thrusttime) < 50) {
+				speed = 0.5;
+			}
+			if (!thrusting) {
+//				snd_sfx_play(sounds[JUMP], 255, 0);
+				thrusting = true;
+				thrusttime = gametime;
+			}
+		} else {
+			if (thrusting  && (gametime - thrusttime) > 250) {
+				thrusting = false;
 			}
 		}
 
@@ -95,8 +116,8 @@ void Player::update(Game *game) {
 
 		direction.x += sin(rotation.y) * speed;
 		direction.z += cos(rotation.y) * speed;
-		direction.x = direction.x < -2 ? -2 : direction.x > 2 ? 2 : direction.x;
-		direction.z = direction.z < -2 ? -2 : direction.z > 2 ? 2 : direction.z;
+//		direction.x = direction.x < -2 ? -2 : direction.x > 2 ? 2 : direction.x;
+//		direction.z = direction.z < -2 ? -2 : direction.z > 2 ? 2 : direction.z;
 
 		previousButtons = s->buttons;
 	}
@@ -217,9 +238,9 @@ void Player::update(Game *game) {
 		// we are falling into a hole or are outside of the level
 		if (dietime == 0) {
 			score -= 50;
-			dietime = qtime;
+			dietime = gametime;
 			snd_sfx_play(sounds[FALL], 255, 128);
-		} else if (qtime - dietime > 1500) {
+		} else if (gametime - dietime > 1500) {
 			dietime = 0;
 			position.y = 4*3;
 			position.x = -2;
