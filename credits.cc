@@ -531,7 +531,7 @@ Credits::Credits() {
 	frames[3].set(0, 0-fontSize, 0); frames[3].time = 14.5;
 	kFrame.generate(frames, 4);
 
-	sphere = generateSphere();
+	sphere = generateSphere(6, 6);
 	q3dPolyhedronCompile(sphere);
 
 	cube = generateCube(10);
