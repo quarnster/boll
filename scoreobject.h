@@ -12,6 +12,7 @@ public:
 	void draw();
 
 private:
+	void positionate();
 };
 
 #endif
