@@ -5,15 +5,20 @@
 
 TARGET = game.elf
 OBJS = \
+	effect/tunnel.o \
+	effect/plane.o \
 	lib/primitives.o \
 	lib/Point3D.o \
 	lib/Keyframe.o \
 	lib/Keyframer.o \
+	lib/QuatCamera.o \
+	disclaimer.o \
 	resources.o \
 	credits.o \
 	game.o \
 	level.o \
 	scoreobject.o \
+	powerupobject.o \
 	player.o \
 	ntscmenu.o \
 	mainmenu.o \
