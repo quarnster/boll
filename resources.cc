@@ -6,13 +6,28 @@ plx_fcxt_t *fcxt;
 
 
 void loadSounds() {
+	char buf[10];
+
 	// load sounds
 	sounds[BOUNCE] = snd_sfx_load("bounce.wav");
-	sounds[BOUNCE2] = snd_sfx_load("bounce2.wav");
 	sounds[JUMP] = snd_sfx_load("jump.wav");
 	sounds[FALL] = snd_sfx_load("fall.wav");
-	sounds[MENU_CHANGE] = snd_sfx_load("menu-change.wav");
-	sounds[MENU_SELECT] = snd_sfx_load("menu-select.wav");
+	sounds[MENU_CHANGE] = snd_sfx_load("m_change.wav");
+	sounds[MENU_SELECT] = snd_sfx_load("m_select.wav");
+	sounds[POWERUP_APPEAR] = snd_sfx_load("p_exists.wav");
+	sounds[POWERUP_GET1] = snd_sfx_load("p_minus.wav");
+	sounds[POWERUP_GET2] = snd_sfx_load("p_plus.wav");
+	sounds[CHARGE] = snd_sfx_load("charge.wav");
+	sounds[CHARGE_RELEASE] = snd_sfx_load("charge_r.wav");
+	sounds[SCORE_PLUS] = snd_sfx_load("s_plus.wav");
+	sounds[SCORE_MINUS] = snd_sfx_load("s_minus.wav");
+
+	for (int i = 0; i < 10; i++) {
+		sprintf(buf, "%d.wav", i+1);
+		sounds[COUNTDOWN1+i] = snd_sfx_load(buf);
+	}
+
+	return;
 }
 
 void freeSounds() {
@@ -50,6 +65,7 @@ pvr_poly_cxt_t loadImage(char *name, int list) {
 	uint32		width;
 	uint32		height;
 
+	printf("loading \"%s\"\n", name);
 	int ret = png_load_texture(name, &ptr, PNG_NO_ALPHA, &width, &height);
 
 	if (ret) {
