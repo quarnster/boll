@@ -93,10 +93,10 @@ void handle_time(irq_t source, irq_context_t *context) {
 	if (!blah) qtime+=2;
 }
 
-KOS_INIT_FLAGS(INIT_DEFAULT /*INIT_IRQ*/ /*| INIT_MALLOCSTATS*/);
+KOS_INIT_FLAGS(INIT_DEFAULT /*INIT_IRQ*/ | INIT_MALLOCSTATS);
 
 pvr_init_params_t pvr_params = {
-	{ PVR_BINSIZE_32, PVR_BINSIZE_0, PVR_BINSIZE_16, PVR_BINSIZE_0, PVR_BINSIZE_0 },
+	{ PVR_BINSIZE_32, PVR_BINSIZE_0, PVR_BINSIZE_16, PVR_BINSIZE_0, PVR_BINSIZE_16 },
 	4*512 * 1024
 };
 
@@ -120,7 +120,7 @@ int main(int argc, char **argv) {
 	// Initialize KOS
 	pvr_init(&pvr_params);
 
-#ifdef BETA
+#ifndef FINAL
 	fs_chdir("/pc/home/quarn/code/dreamcast/game/data");
 #else
 	fs_chdir("/cd/data");
@@ -153,7 +153,7 @@ int main(int argc, char **argv) {
 
 
 
-#ifdef BETA
+#ifndef FINAL
 	cont_btn_callback(0, CONT_START | CONT_A | CONT_B | CONT_X | CONT_Y, (cont_btn_callback_t) ccallback);
 #endif
 
