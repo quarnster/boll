@@ -11,7 +11,7 @@ static point_t w;
 extern uint32 polysent;
 extern uint32 vertextest;
 
-#define GAMELENGTH 2.5
+#define GAMELENGTH 5.0
 
 q3dTypePolyhedron *sphere;
 q3dTypePolyhedron *scorePolyhedron;
@@ -29,8 +29,10 @@ q3dTypeMatrix screen_matrix __attribute__((aligned(32))) = {
 };
 
 Game::Game() {
+	countdown = 1;
 	soundtrack = INGAMETRACK1;
 	gameended = false;
+	type = GET_HIM;
 
 	q3dMatrixInit();
 
@@ -77,6 +79,9 @@ Game::Game() {
 	player[2].position.set(-2,  2, -2); q3dColorSet3f(&player[2].baseColor, 0, 0, 1);
 	player[3].position.set(+2,  2, -2); q3dColorSet3f(&player[3].baseColor, 1, 1, 0);
 
+	for (int i = 0; i < MAX_POWERUP_NUM; i++)
+		powerup[i].positionate();
+
 	pvr_poly_cxt_t cxt;
 	pvr_poly_cxt_col(
 		&cxt,
@@ -110,7 +115,7 @@ Game::~Game() {
 }
 
 extern bool done2;
-extern uint32 gametime;
+extern uint64 gametime;
 void Game::reset() {
 	frame = 0;
 	endtrack = false;
@@ -237,8 +242,8 @@ void Game::draw() {
 			mat_trans_single3(vert.x, vert.y, vert.z);
 			if (vert.z < 3)
 				continue;
-			if (vert.z > 150)
-				continue;
+//			if (vert.z > 150)
+//				continue;
 			if (vert.x > vert.z + 4)
 				continue;
 			if (vert.x < -vert.z - 4)
@@ -271,8 +276,8 @@ void Game::draw() {
 			// test if outside viewing frustum
 			if (vert.z < 0)
 				continue;
-			if (vert.z > 100)
-				continue;
+//			if (vert.z > 150)
+//				continue;
 			if (vert.x > vert.z + 2.5)
 				continue;
 			if (vert.x < -vert.z - 2.5)
@@ -387,10 +392,26 @@ void Game::draw() {
 	sprintf(buf, "%d", player[2].getCurrentScore());
 	plx_fcxt_draw(fcxt, buf);
 
+	w.x = 320 - 100;
+	w.y = 448;
+	w.z = 1000.1f;
+	plx_fcxt_setpos_pnt(fcxt, &w);
+	plx_fcxt_setsize(fcxt, 32);
+	if (type == GET_HIM) {
+		plx_fcxt_draw(fcxt, "Get him!");
+	} else if (type == WATCH_OUT) {
+		plx_fcxt_draw(fcxt, "Watch out!");
+	}
+
 	long lsec = (gametime - (GAMELENGTH * 1000 * 60 - 10 * 1000));
 	float sec = lsec / 1000.0f;
 	if (sec > 0 && sec < 10) {
 		int sec2 = (int) sec;
+		if (countdown != sec2) {
+			countdown = sec2;
+			snd_sfx_play(sounds[COUNTDOWN1+9-countdown], 255, 128);
+		}
+
 		w.x = 320-32;
 		w.y = 240;
 		float alpha = 1 - (sec - sec2);
@@ -451,28 +472,28 @@ void Game::draw() {
 		vert = pvr_dr_target(state);
 		vert->flags = PVR_CMD_VERTEX;
 		vert->argb = color;
-		vert->z = 1000;
+		vert->z = 1000.5;
 		vert->x = 0; vert->y = 480;
 		pvr_dr_commit(vert);
 
 		vert = pvr_dr_target(state);
 		vert->flags = PVR_CMD_VERTEX;
 		vert->argb = color;
-		vert->z = 1000;
+		vert->z = 1000.5;
 		vert->x = 0; vert->y = 0;
 		pvr_dr_commit(vert);
 
 		vert = pvr_dr_target(state);
 		vert->flags = PVR_CMD_VERTEX;
 		vert->argb = color;
-		vert->z = 1000;
+		vert->z = 1000.5;
 		vert->x = 640; vert->y = 480;
 		pvr_dr_commit(vert);
 
 		vert = pvr_dr_target(state);
 		vert->argb = color;
 		vert->flags = PVR_CMD_VERTEX_EOL;
-		vert->z = 1000;
+		vert->z = 1000.5;
 		vert->x = 640; vert->y = 0;
 		pvr_dr_commit(vert);
 
