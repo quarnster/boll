@@ -4,6 +4,7 @@
 #include "lib/Point3D.h"
 #include "lib/Keyframer.h"
 #include "lib/primitives.h"
+#include "resources.h"
 
 #include <plx/font.h>
 #include <plx/list.h>
@@ -11,9 +12,6 @@
 
 
 extern plx_fcxt_t *fcxt;
-
-
-
 
 
 #define VECTOR Point3D
@@ -106,14 +104,7 @@ bool checkPointInTriangle(const VECTOR& point, const VECTOR& pa,const VECTOR& pb
 	return (( in(z)& ~(in(x)|in(y)) ) & 0x80000000);
 }
 
-Point3D operator*(const float& mul, const Point3D& p) {
-	Point3D tmp;
-	tmp.x = mul * p.x;
-	tmp.y = mul * p.y;
-	tmp.z = mul * p.z;
 
-	return tmp;
-}
 bool getLowestRoot(float a, float b, float c, float maxR, float* root) {
 	// Check if a solution exists
 	float determinant = b*b - 4.0f*a*c;
@@ -556,7 +547,23 @@ Credits::Credits() {
 	cube->material.header = cubeFiller.defaultHeader;
 
 	q3dCameraInit(&cam);
-	cam._pos.z = -20;
+	cam._pos.z = -5;
+
+	torus = generateTorus(20, 2);
+	q3dPolyhedronCompile(torus);
+
+	q3dFillerTextureInit(&torus1Filler);
+	torus1Filler.defaultCxt = loadImage("amiga.png", PVR_LIST_OP_POLY);
+	pvr_poly_compile(&torus1Filler.defaultHeader, &torus1Filler.defaultCxt);
+
+	q3dFillerEnvironmentInit(&torus2Filler);
+	torus2Filler.defaultCxt = loadImage("env.png", PVR_LIST_PT_POLY);
+	torus2Filler.defaultCxt.list_type = PVR_LIST_PT_POLY;
+	torus2Filler.defaultCxt.depth.comparison = PVR_DEPTHCMP_NEVER;
+	torus2Filler.defaultCxt.blend.src = PVR_BLEND_ONE; //DESTCOLOR;
+	torus2Filler.defaultCxt.blend.dst = PVR_BLEND_ZERO;
+	pvr_poly_compile(&torus2Filler.defaultHeader, &torus2Filler.defaultCxt);
+
 }
 
 Credits::~Credits() {
@@ -571,6 +578,9 @@ Credits::~Credits() {
 	printf("done!\nfree sphere: ...");
 	free(sphere);
 	printf("done!\n");
+
+	q3dPolyhedronFree(torus);
+	free(torus);
 }
 
 static Point3D velocity;
@@ -618,9 +628,9 @@ void Credits::run() {
 
 		float time = (timer_ms_gettime64() - startTime) / 1000.0f;
 
-		cube->_agl.x = time*0.25;
-		cube->_agl.y = time*1.1*0.25;
-		cube->_agl.z = time*1.2*0.25;
+		cube->_agl.x = time*1.75*0.25;
+		cube->_agl.y = time*1.5*0.25;
+		cube->_agl.z = time*2.0*0.25;
 
 		q3dMatrixIdentity();
 		q3dMatrixRotateX(cube->_agl.x);
@@ -701,8 +711,21 @@ void Credits::run() {
 
 		pvr_list_begin(PVR_LIST_OP_POLY);
 
-		q3dColorSet3f(&sphere->material.color, 1.0f, 0.0f, 0.0f);
-		q3dPolyhedronPaint(sphere, &cam, &sphereFiller);
+//		q3dPolyhedronPaint(sphere, &cam, &sphereFiller);
+
+
+		q3dAngleSetV(&torus->_agl, &cube->_agl);
+		torus->material.header = torus1Filler.defaultHeader;
+		q3dColorSet3f(&torus->material.color, 1.0f, 1.0f,1.0f);
+		q3dPolyhedronPaint(torus, &cam, &torus1Filler);
+
+		pvr_list_finish();
+
+		pvr_list_begin(PVR_LIST_PT_POLY);
+
+		pvr_prim(&torus2Filler.defaultHeader, sizeof(pvr_poly_hdr_t));
+		torus2Filler.update(torus);
+		torus2Filler.draw(torus);
 
 		pvr_list_finish();
 
@@ -710,7 +733,7 @@ void Credits::run() {
 
 		// draw the cube
 		q3dColorSet4f(&cube->material.color, 1.0f, 1.0f, 1.0f, 0.5);
-		q3dPolyhedronPaint(cube, &cam, &cubeFiller);
+//		q3dPolyhedronPaint(cube, &cam, &cubeFiller);
 
 		// draw credits text
 		plx_fcxt_begin(fcxt);

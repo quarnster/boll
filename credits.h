@@ -12,9 +12,13 @@ public:
 	void run();
 
 private:
+	q3dTypeFiller torus1Filler;
+	q3dTypeFiller torus2Filler;
+
 	q3dTypeFiller cubeFiller;
 	q3dTypeFiller sphereFiller;
 
+	q3dTypePolyhedron *torus;
 	q3dTypePolyhedron *sphere;
 	q3dTypePolyhedron *cube;
 	q3dTypeCamera cam;
