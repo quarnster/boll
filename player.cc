@@ -22,13 +22,14 @@ extern q3dTypeFiller fillerPlayers;
 extern uint32 qtime;
 
 void Player::update(Game *game) {
+
 	maple_device_t *dev = maple_enum_dev(port, 0);
 	float ballradius = 1.0f;
 	float level = 0;
 
 	// find out where in the level we are
 	float px = (LEVELSIZE + position.x) / (2 * LEVELSIZE);
-	float pz = (LEVELSIZE - position.z) / (2 * LEVELSIZE);
+	float pz = (LEVELSIZE + position.z) / (2 * LEVELSIZE);
 
 	int pos = (int) (pz * 32) *32 + (int) (px*32);
 	if (px < 0 || pz < 0 || px > 1 || pz > 1) {
@@ -52,11 +53,11 @@ void Player::update(Game *game) {
 	if (!dietime && dev != NULL && dev->info.functions & MAPLE_FUNC_CONTROLLER) {
 		cont_state_t* s = (cont_state_t*) maple_dev_status(dev);
 		float cx = s->joyx / 2048.0f;
-		float speed = s->joyy / 6144.0f;
+		float speed = -s->joyy / 6144.0f;
 
 		if (s->buttons & CONT_A) {
 			if (jumpplay && (qtime - jumpstart) < 250) {
-				direction.y = -0.85f;
+				direction.y = 0.85f;
 			}
 			if (!jumpplay && (qtime - jumpstart) < 125) {
 				snd_sfx_play(sounds[JUMP], 255, 0);
@@ -68,12 +69,8 @@ void Player::update(Game *game) {
 				jumpplay = false;
 			}
 		}
-/*
-		if (s->buttons & CONT_Y) {
-			vid_screen_shot("/pc/tmp/screen.png");
-		}
-*/
-		rotation.y -= cx;
+
+		rotation.y += cx;
 
 		direction.x += sin(rotation.y) * speed;
 		direction.z += cos(rotation.y) * speed;
@@ -98,6 +95,7 @@ void Player::update(Game *game) {
 	// do collision detection between spheres.
 	// this sphere has allready been tested against the previous
 	// spheres so we don't need to test with those again.
+/*
 	for (int i = port+1; i < 4; i++) {
 		Player *p = &game->player[i];
 		Point3D v(position);
@@ -203,7 +201,7 @@ void Player::update(Game *game) {
 			direction.x = direction.y = direction.z = 0;
 		}
 	}
-
+*/
 }
 
 void Player::draw() {
@@ -219,7 +217,7 @@ void Player::draw() {
 	q3dMatrixLoad(&_q3dMatrixPerspective);
 	q3dMatrixApply(&_q3dMatrixTemp);
 
-	q3dMatrixTransform(sphere->vertex, (pvr_vertex_t*)&sphere->_finalVertex[0].x, sphere->vertexLength, sizeof(pvr_vertex_t));
+	q3dMatrixTransformPVR(sphere->vertex, &sphere->_finalVertex[0].x, sphere->vertexLength, sizeof(pvr_vertex_t));
 	q3dMatrixTransformNormals(sphere->_uVertexNormal, sphere->_vertexNormal, sphere->vertexLength);
 
 	fillerPlayers.update(sphere);
