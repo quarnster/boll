@@ -36,7 +36,7 @@ void freeFont() {
 
 void loadResources() {
 	loadSounds();
-	loadFont();
+//	loadFont();
 }
 
 void freeResources() {
