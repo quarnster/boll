@@ -10,22 +10,24 @@ ScoreObject::ScoreObject() : Object() {
 
 void ScoreObject::positionate() {
 	position.y = 2;
-	position.x = (((rand() % 1000) / 1000.0f) * 1 - 0.5)*LEVELSIZE*2;
-	position.z = (((rand() % 1000) / 1000.0f) * 1 - 0.5)*LEVELSIZE*2;
 
-	// find out where in the level we are
-	float px = (LEVELSIZE + position.x) / (2 * LEVELSIZE);
-	float pz = (LEVELSIZE + position.z) / (2 * LEVELSIZE);
+//	while (true) {
+		position.x = ((rand() % 1000) / 1000.0f - 0.5f) * LEVELSIZE * 2;
+		position.z = ((rand() % 1000) / 1000.0f - 0.5f) * LEVELSIZE * 2;
 
-	int pos = (int) (pz * 32) *32 + (int) (px*32);
-/*
-	if (levelData[pos] == HOLE) {
-		position.y += 5;
-	} else if (levelData[pos] == HIGH) {
-		// we are at a cube
-		position.y += 10;
-	}
-*/
+		// find out where in the level we are
+		float px = (LEVELSIZE + position.x) / (2 * LEVELSIZE);
+		float pz = (LEVELSIZE + position.z) / (2 * LEVELSIZE);
+
+		int pos = (int) (pz * BOARDSIZE) *BOARDSIZE + (int) (px*BOARDSIZE);
+
+		if (levelData[pos] != HOLE) {
+//			break;
+		} else if (levelData[pos] == HIGH) {
+			position.y += 10;
+//			break;
+		}
+//	}
 }
 
 void ScoreObject::update(Game *game) {
@@ -40,7 +42,7 @@ void ScoreObject::update(Game *game) {
 
 		if (dist < minDist) {
 			snd_sfx_play(sounds[MENU_SELECT], 255, 128);
-			p->score += 10;
+			p->addScore(10);
 			positionate();
 
 			break;
