@@ -35,3 +35,17 @@ Apparantly the dreamcast does not clip in z.. I'll have to implement some sort o
 Thought a lot about how levels should be created and drawed to the screen.
 messed around trying to get the spu-stuff to work but still no luck :(
 wrote a looooooong todo-list... jikes :)
+
+
+
+Tuesday, January 27
+
+Messed around trying to get the aligning for the sound driver to work. moved to using bin2c instead of
+bin2o and now it works!
+Created a pal/ntsc-selection screen.
+Better handling of the ball when it is airborn
+Started working on level-drawing
+fixed 4-player split-view mode
+fixed following camera
+fixed quake-like steering
+
