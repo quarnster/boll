@@ -10,6 +10,9 @@
 #include <plx/dr.h>
 
 
+extern plx_fcxt_t *fcxt;
+
+
 
 
 
@@ -454,13 +457,11 @@ VECTOR CharacterEntity::collideWithWorld(const VECTOR& pos, const VECTOR& vel) {
 	return collideWithWorld(newBasePoint,newVelocityVector);
 }
 */
-static plx_font_t *fnt;
-static plx_fcxt_t *fcxt;
 
-#define LINENUM 32
+#define LINENUM 60
 static int width[LINENUM];
 
-static float fontSize = 16;
+static float fontSize = 24;
 static char cred_text[LINENUM][45] = {
 	"== Programming ==",
 	"Fredrik \"quarn\" Ehnbom",
@@ -470,9 +471,15 @@ static char cred_text[LINENUM][45] = {
 	"",
 	"This has been the result of",
 	"around 50 days of work. The project",
-	"started at January 23rd and was submitted",
-	"to the dream-on competition at March 16th",
-	"(one day before the deadline..)",
+	"started at January 23rd and was",
+	"submitted to the dream-on competition",
+	"at March 16th (one day before the",
+	"deadline..)",
+	"",
+	"Acctually it is the first \"real\" game",
+	"that I've ever coded. Before this I've",
+	"only made \"snake\" (but I did it twice! ;))",
+	"Not that bad for a first timer eh?",
 	"",
 	"This game would not have been possible",
 	"without all the people writing code",
@@ -490,8 +497,23 @@ static char cred_text[LINENUM][45] = {
 	"Of course, this list could be a lot",
 	"longer, but these are the names that",
 	"came to my mind",
-	
-	
+	"",
+	"We'd also like to send some greetings",
+	"to our friends in",
+	"",
+	"obscure",
+	"noice",
+	"yodel",
+	"comic bakery",
+	"deus ex machina",
+	"medieval",
+	"absession",
+	"everyone we forgot",
+	"",
+	"and last but not least",
+	"YOU (for playing this game)",
+	"",
+	"*hugs*",
 };
 
 static uint64 startTime = 0;
@@ -503,12 +525,6 @@ static q3dTypeVertex world_coordinates[8];
 
 Credits::Credits() {
 	q3dMatrixInit();
-	// load debug-font
-	fnt = plx_font_load("font.txf");
-	fcxt = plx_fcxt_create(fnt, PVR_LIST_TR_POLY);
-	plx_fcxt_setcolor4f(fcxt, 1, 1, 1, 1);
-	plx_fcxt_setsize(fcxt, fontSize);
-	printf("fnt: %d, fcxt: %d\n", fnt, fcxt);
 
 	for (int i = 0; i < LINENUM; i++) {
 		float l, u, d, r;
@@ -520,8 +536,8 @@ Credits::Credits() {
 	frames[1].bias = frames[2].bias = 1.0f;
 	frames[0].set(0, 480+fontSize, 0); frames[0].time = 0;
 	frames[1].set(0.8, 320+fontSize, 0); frames[1].time = 0.5;
-	frames[2].set(0.8, 160+fontSize, 0); frames[2].time = 8.0;
-	frames[3].set(0, 0-fontSize, 0); frames[3].time = 8.5;
+	frames[2].set(0.8, 160+fontSize, 0); frames[2].time = 14.0;
+	frames[3].set(0, 0-fontSize, 0); frames[3].time = 14.5;
 	kFrame.generate(frames, 4);
 
 	sphere = generateSphere();
@@ -541,21 +557,9 @@ Credits::Credits() {
 
 	q3dCameraInit(&cam);
 	cam._pos.z = -20;
-/*
-	for (int i = 0; i < 6; i++) {
-		printf("normal[%d]: (%.2f, %.2f, %.2f)\n", i,
-			cube->_uPolygonNormal[i].x,
-			cube->_uPolygonNormal[i].y,
-			cube->_uPolygonNormal[i].z
-		);
-	}
-*/
 }
 
 Credits::~Credits() {
-	plx_fcxt_destroy(fcxt);
-	plx_font_destroy(fnt);
-
 	printf("polyhedron free cube: ...");
 	q3dPolyhedronFree(cube);
 	printf("done!\nfree cube: ...");
@@ -570,132 +574,176 @@ Credits::~Credits() {
 }
 
 static Point3D velocity;
-void Credits::draw() {
+void Credits::run() {
 	static Point3D key;
 	static CollisionPacket packet;
 	static Point3D p1;
 	static Point3D p2;
 	static Point3D p3;
 
-	q3dMatrixIdentity();
+	plx_fcxt_setsize(fcxt, fontSize);
 
-	q3dMatrixRotateX(cube->_agl.x);
-	q3dMatrixRotateY(cube->_agl.y);
-	q3dMatrixRotateZ(cube->_agl.z);
-	q3dMatrixTransform(cube->vertex, world_coordinates, 8, sizeof(q3dTypeVertex));
+	Point3D gravity(0,-0.1,0);
 
-	if (startTime == 0) startTime = timer_ms_gettime64();
+	startTime = timer_ms_gettime64();
 
-	float time = (timer_ms_gettime64() - startTime) / 1000.0f;
-
+	uint32 last;
 	maple_device_t *dev = maple_enum_dev(0, 0);
 	if (dev != NULL && dev->info.functions & MAPLE_FUNC_CONTROLLER) {
-		cont_state_t* s = (cont_state_t*) maple_dev_status(dev);
-
-		cube->_agl.x += s->joyy / 4096.0f;
-		cube->_agl.y += s->joyx / 4096.0f;
-
-		if (s->buttons & CONT_A) {
-			sphere->_pos.x = sphere->_pos.y = sphere->_pos.z = 0;
-			velocity.set(0,0,0);
-//			velocity.x = velocity.y = velocity.z = 0;
-		}
-	}
-	packet.foundCollision = false;
-	packet.nearestDistance = 10;
-	packet.basePoint.set(sphere->_pos.x, sphere->_pos.y, sphere->_pos.z);
-	packet.velocity.set(velocity.x,velocity.y, velocity.z);
-	packet.normalizedVelocity.set(velocity.x,velocity.y, velocity.z);
-	packet.normalizedVelocity.normalize();
-
-	for (int i = 0; i < 6; i++) {
-		q3dTypeVertex *v = &world_coordinates[cube->polygon[i].vertex[0]];
-		p1.set(v->x, v->y, v->z);
-		v = &world_coordinates[cube->polygon[i].vertex[1]];
-		p2.set(v->x, v->y, v->z);
-		v = &world_coordinates[cube->polygon[i].vertex[2]];
-		p3.set(v->x, v->y, v->z);
-		checkTriangle(&packet, p1,p2, p3);
-
-		v = &world_coordinates[cube->polygon[i].vertex[2]];
-		p1.set(v->x, v->y, v->z);
-		v = &world_coordinates[cube->polygon[i].vertex[1]];
-		p2.set(v->x, v->y, v->z);
-		v = &world_coordinates[cube->polygon[i].vertex[3]];
-		p3.set(v->x, v->y, v->z);
-		checkTriangle(&packet, p1,p2, p3);
+		cont_state_t* st = (cont_state_t*) maple_dev_status(dev);
+		last = st->buttons;
 	}
 
-	if (packet.nearestDistance == 10) {
-		// no collision
-		sphere->_pos.x += packet.velocity.x;
-		sphere->_pos.y += packet.velocity.y;
-		sphere->_pos.z += packet.velocity.z;
-	} else {
-		float dist = packet.plane.signedDistanceTo(packet.basePoint);
-		float t = packet.t - 0.1;
-		if (t > 0.1) {
-			sphere->_pos.x += t * packet.velocity.x;
-			sphere->_pos.y += t * packet.velocity.y;
-			sphere->_pos.z += t * packet.velocity.z;
-		} else if (fabs(dist) < 1.0) {
-			// we are inside of the plane.. need to move outside
-			float d = -0.1 - dist;
-			sphere->_pos.x -= d * packet.plane.normal.x;
-			sphere->_pos.y -= d * packet.plane.normal.y;
-			sphere->_pos.z -= d * packet.plane.normal.z;
+	while (true) {
+		dev = maple_enum_dev(0, 0);
+		if (dev != NULL && dev->info.functions & MAPLE_FUNC_CONTROLLER) {
+			cont_state_t* st = (cont_state_t*) maple_dev_status(dev);
+			if (st->buttons & CONT_START && !(last & CONT_START) || st->buttons & CONT_A && !(last & CONT_A)) {
+				return;
+			}
+			if (st->buttons & CONT_Y) {
+				sphere->_pos.x = sphere->_pos.y = sphere->_pos.z = 0;
+				velocity.x =velocity.y = velocity.z = 0;
+			}
+			if (st->buttons & CONT_B) {
+				sphere->_pos.x = sphere->_pos.y = sphere->_pos.z = 0;
+				velocity.x =velocity.y = velocity.z = 0;
+				sphere->_pos.y = 20;
+			}
+
+			last = st->buttons;
 		}
+
+		float time = (timer_ms_gettime64() - startTime) / 1000.0f;
+
+		cube->_agl.x = time*0.25;
+		cube->_agl.y = time*1.1*0.25;
+		cube->_agl.z = time*1.2*0.25;
+
+		q3dMatrixIdentity();
+		q3dMatrixRotateX(cube->_agl.x);
+		q3dMatrixRotateY(cube->_agl.y);
+		q3dMatrixRotateZ(cube->_agl.z);
+		q3dMatrixTransform(cube->vertex, world_coordinates, 8, sizeof(q3dTypeVertex));
+
+
+
+		maple_device_t *dev = maple_enum_dev(0, 0);
+		if (dev != NULL && dev->info.functions & MAPLE_FUNC_CONTROLLER) {
+			cont_state_t* s = (cont_state_t*) maple_dev_status(dev);
+
+//			cube->_agl.x += s->joyy / 4096.0f;
+//			cube->_agl.y += s->joyx / 4096.0f;
+
+			if (s->buttons & CONT_A) {
+				sphere->_pos.x = sphere->_pos.y = sphere->_pos.z = 0;
+				velocity.set(0,0,0);
+	//			velocity.x = velocity.y = velocity.z = 0;
+			}
+		}
+		packet.foundCollision = false;
+		packet.nearestDistance = 10;
+		packet.basePoint.set(sphere->_pos.x, sphere->_pos.y, sphere->_pos.z);
+		packet.velocity.set(velocity.x,velocity.y, velocity.z);
+		packet.normalizedVelocity.set(velocity.x,velocity.y, velocity.z);
+		packet.normalizedVelocity.normalize();
+
+		for (int i = 0; i < 6; i++) {
+			q3dTypeVertex *v = &world_coordinates[cube->polygon[i].vertex[0]];
+			p1.set(v->x, v->y, v->z);
+			v = &world_coordinates[cube->polygon[i].vertex[1]];
+			p2.set(v->x, v->y, v->z);
+			v = &world_coordinates[cube->polygon[i].vertex[2]];
+			p3.set(v->x, v->y, v->z);
+			checkTriangle(&packet, p1,p2, p3);
+
+			v = &world_coordinates[cube->polygon[i].vertex[2]];
+			p1.set(v->x, v->y, v->z);
+			v = &world_coordinates[cube->polygon[i].vertex[1]];
+			p2.set(v->x, v->y, v->z);
+			v = &world_coordinates[cube->polygon[i].vertex[3]];
+			p3.set(v->x, v->y, v->z);
+			checkTriangle(&packet, p1,p2, p3);
+		}
+
+		bool addVelocity = true;
+		if (packet.nearestDistance == 10) {
+			// no collision
+			sphere->_pos.x += packet.velocity.x;
+			sphere->_pos.y += packet.velocity.y;
+			sphere->_pos.z += packet.velocity.z;
+		} else {
+			float dist = packet.plane.signedDistanceTo(packet.basePoint);
+			float t = packet.t - 0.1;
+			if (fabs(dist) < 1.1)  {
 /*
-		Point3D normal = packet.plane.normal;
-		Point3D reflection = velocity - 2*(velocity.dot(normal)) * normal;
-		velocity = reflection *0.75;
+				// we are inside of the plane.. need to move outside
+				float d;
+				if (dist < 0) d = 1.1 + dist;
+				else d = -1.1 -dist;
+				sphere->_pos.x -= d * packet.plane.normal.x;
+				sphere->_pos.y -= d * packet.plane.normal.y;
+				sphere->_pos.z -= d * packet.plane.normal.z;
 */
-		velocity *= 0;
-		if (velocity.squaredLength() < 0.5) {
-			// slide instead of bounce
+//				packet.basePoint -= d * packet.plane.normal;
+//				printf("dist1: %f, dist2: %f\n", dist, packet.plane.signedDistanceTo(packet.basePoint));
+			} else /*if (t > 0.1)*/ {
+				sphere->_pos.x += t * packet.velocity.x;
+				sphere->_pos.y += t * packet.velocity.y;
+				sphere->_pos.z += t * packet.velocity.z;
+			}
+
+
+			Point3D normal = packet.plane.normal;
+			Point3D reflection = velocity - 2*(velocity.dot(normal)) * normal;
+			velocity = reflection *0.75;
+
+//			velocity *= 0;
+			if (velocity.squaredLength() < 1) {
+				// slide instead of bounce
+			//	velocity = gravity;
+//				addVelocity = false;
+			}
 		}
+		if (addVelocity)
+			velocity += gravity;
+
+
+		// begin rendering
+		pvr_wait_ready();
+		pvr_scene_begin();
+
+		pvr_list_begin(PVR_LIST_OP_POLY);
+
+		q3dColorSet3f(&sphere->material.color, 1.0f, 0.0f, 0.0f);
+		q3dPolyhedronPaint(sphere, &cam, &sphereFiller);
+
+		pvr_list_finish();
+
+		pvr_list_begin(PVR_LIST_TR_POLY);
+
+		// draw the cube
+		q3dColorSet4f(&cube->material.color, 1.0f, 1.0f, 1.0f, 0.5);
+		q3dPolyhedronPaint(cube, &cam, &cubeFiller);
+
+		// draw credits text
+		plx_fcxt_begin(fcxt);
+
+		for (int i = 0; i < LINENUM; i++) {
+			kFrame.getKey(frames, 4, &key, time - 2 - i*1*2);
+			float y = key.y; //(int) (i * fontSize + 320 - time * 34);
+			if (y < 0) continue;
+			if (y > 480) break;
+
+			plx_fcxt_setcolor4f(fcxt, key.x, 1, 1, 1);
+			plx_fcxt_setpos(fcxt, width[i], y, 2);
+			plx_fcxt_draw(fcxt, cred_text[i]);
+		}
+
+		plx_fcxt_end(fcxt);
+
+		pvr_list_finish();
+
+		pvr_scene_finish();
 	}
-	velocity.y -= 0.05;
-
-//	cube->_agl.x = time;
-//	cube->_agl.y = time*1.1;
-//	cube->_agl.z = time*1.2;
-
-
-	// begin rendering
-	pvr_wait_ready();
-	pvr_scene_begin();
-
-	pvr_list_begin(PVR_LIST_OP_POLY);
-
-	q3dColorSet3f(&sphere->material.color, 1.0f, 0.0f, 0.0f);
-	q3dPolyhedronPaint(sphere, &cam, &sphereFiller);
-
-	pvr_list_finish();
-
-	pvr_list_begin(PVR_LIST_TR_POLY);
-
-	// draw the cube
-	q3dColorSet4f(&cube->material.color, 1.0f, 1.0f, 1.0f, 0.5);
-	q3dPolyhedronPaint(cube, &cam, &cubeFiller);
-
-	// draw credits text
-	plx_fcxt_begin(fcxt);
-
-	for (int i = 0; i < LINENUM; i++) {
-		kFrame.getKey(frames, 4, &key, time - i*0.75);
-		float y = key.y; //(int) (i * fontSize + 320 - time * 34);
-		if (y < 0) continue;
-		if (y > 480) break;
-
-		plx_fcxt_setcolor4f(fcxt, key.x, 1, 1, 1);
-		plx_fcxt_setpos(fcxt, width[i], y, 2);
-		plx_fcxt_draw(fcxt, cred_text[i]);
-	}
-
-	plx_fcxt_end(fcxt);
-
-	pvr_list_finish();
-
-	pvr_scene_finish();
 }
