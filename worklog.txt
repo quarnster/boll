@@ -5,6 +5,8 @@ discussed this quite a bit with thec and also did lots of thinking on my own.
 emailed loosen@goatstore.com to say that I will enter this competition.
 created some baseclasses and thought a bit on how to implement the whole thing.
 
+
+
 Saturday, January 24
 
 heavy brainstormingsession with my brother. lots of new ideas and lots of changes
@@ -12,3 +14,15 @@ to how the game should be :)
 borrowed two controllers from my brother and got a hub from dad.
 got a cube to bounce around on the screen.
 
+
+
+Sunday, January 25
+
+zantac accepted the challange to take care of the music and sound effects. he thinks
+the idea is really good and is looking forward to the finished game.
+I messed around trying to play sound effects, didn't work because of spu_init in kos crashing. mailed Dan about it
+multitexturing is not available I found out.
+wrote a sphere generator.
+multiple spheres on the screen at the same time all controllable with different controllers.
+had lots of ideas for a level-generator
+read up on collusion detection and got some good ideas
