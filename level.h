@@ -9,7 +9,8 @@ enum {
 	HIGH
 };
 
-#define LEVELSIZE 200
+#define BOARDSIZE 16
+#define LEVELSIZE 100
 #define LEVELHEIGHT 10
 extern uint8 levelData[];
 
