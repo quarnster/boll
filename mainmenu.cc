@@ -1,14 +1,14 @@
 #include <kos.h>
 #include "mainmenu.h"
 
-#define LINENUM 4
+#define LINENUM 2
 static int width[LINENUM];
 
 static float fontSize = 24;
 static char menu_text[LINENUM][45] = {
 	"new game",
-	"level editor",
-	"ball customizer",
+/*	"level editor",*/
+/*	"ball customizer",*/
 	"credits"
 };
 
