@@ -70,17 +70,37 @@ static q3dTypePolyhedron *generateSphere() {
 }
 q3dTypePolyhedron *sphere;
 q3dTypeFiller fillerPlayers;
+
+static q3dTypeMatrix screen_matrix __attribute__((aligned(32))) = {
+    { 480/4.0f, 0.0f, 0.0f, 0.0f },
+    { 0.0f, 480 / 4.0f, 0.0f, 0.0f },
+    { 0.0f, 0.0f, 1.0f, 0.0f },
+    { 0.0f, 0.0f, 0.0f, 1.0f }
+};
+
 Game::Game() {
 	q3dMatrixInit();
 
 	sphere = generateSphere();
 	q3dFillerCellInit(&fillerPlayers);
+	fillerPlayers.defaultCxt.gen.clip_mode = PVR_USERCLIP_INSIDE;
+	pvr_poly_compile(&fillerPlayers.defaultHeader, &fillerPlayers.defaultCxt);
+
 	q3dCameraInit(&cam);
 	cam._pos.y = -5;
 	cam._pos.z = 5;
 
 	for (int i = 0; i < 4; i++)
 		player[i].setController(i);
+
+
+	pvr_poly_cxt_t cxt;
+	pvr_poly_cxt_col(
+		&cxt,
+		PVR_LIST_OP_POLY
+	);
+
+	pvr_poly_compile(&crossHeader, &cxt);
 }
 
 Game::~Game() {
@@ -95,16 +115,105 @@ void Game::update() {
 	level.update();
 }
 
+static pvr_poly_hdr_t user_clip = {
+        PVR_CMD_USERCLIP, 0x00000000, 0x00000000, 0x00000000,
+        0x00000000, 0x00000000, 0x00000000, 0x00000000
+};
+extern matrix_t projection_matrix;
 void Game::draw() {
 	// begin render with TA
 	pvr_scene_begin();
 	pvr_list_begin(PVR_LIST_OP_POLY);
 
-	// todo.. draw..
+	// draw..
 	for (int i = 0; i < 4; i++) {
-		// TODO: camera stuff..
-		player[i].draw(&cam);
+		q3dMatrixIdentity();
+		q3dMatrixTranslate(0,2,-10);
+		q3dMatrixRotateY(player[i].rotation.y);
+		q3dMatrixTranslate(-player[i].position.x,0 /*player[i].position.y*/,-player[i].position.z);
+
+		q3dMatrixStore(&_q3dMatrixCamera);
+		if (i == 0) {
+			// upper left
+			screen_matrix[3][0] = 1 * 640 / 4.0f;
+			screen_matrix[3][1] = 1 * 480 / 4.0f;
+			user_clip.d1 = 0;
+			user_clip.d2 = 0;
+			user_clip.d3 = (640/2)/32-1;
+			user_clip.d4 = (480/2)/32-1;
+		} else if (i == 1) {
+			// upper right
+			screen_matrix[3][0] = 3 * 640 / 4.0f;
+			screen_matrix[3][1] = 1 * 480 / 4.0f;
+			user_clip.d1 = (640/2)/32;
+			user_clip.d2 = 0;
+			user_clip.d3 = (4*640/4)/32-1;
+			user_clip.d4 = (480/2)/32-1;
+		} else if (i == 2) {
+			// lower left
+			screen_matrix[3][0] = 1 * 640 / 4.0f;
+			screen_matrix[3][1] = 3 * 480 / 4.0f;
+			user_clip.d1 = 0;
+			user_clip.d2 = (480/2)/32;
+			user_clip.d3 = (640/2)/32-1;
+			user_clip.d4 = (4*480/4)/32-2;
+		} else {
+			// lower right
+			screen_matrix[3][0] = 3 * 640 / 4.0f;
+			screen_matrix[3][1] = 3 * 480 / 4.0f;
+			user_clip.d1 = (640/2)/32;
+			user_clip.d2 = (480/2)/32;
+			user_clip.d3 = (4*640/4)/32-1;
+			user_clip.d4 = (4*480/4)/32-2;
+		}
+		pvr_prim(&user_clip, sizeof(pvr_poly_hdr_t));
+		q3dMatrixLoad(&screen_matrix);
+		q3dMatrixApply(&projection_matrix);
+		q3dMatrixStore(&_q3dMatrixPerspective);
+
+		for (int j = 0; j < 4; j++) {
+			// TODO: camera stuff..
+			player[j].draw(&cam);
+		}
 	}
+
+	// commit cross
+	pvr_prim(&crossHeader, sizeof(pvr_poly_hdr_t));
+	pvr_vertex_t vert;
+	vert.argb = PVR_PACK_COLOR(1.0f, 0.0f, 0.0f, 0.0f);
+	vert.z = 1 / 100.0f;
+
+	// vertical line
+	vert.flags = PVR_CMD_VERTEX;
+	vert.x = 640/2-1; vert.y = 480-32;
+	pvr_prim(&vert, sizeof(pvr_vertex_t));
+
+	/*vert.x = 640/2-1;*/ vert.y = 0;
+	pvr_prim(&vert, sizeof(pvr_vertex_t));
+
+	vert.x = 640/2+1; vert.y = 480-32;
+	pvr_prim(&vert, sizeof(pvr_vertex_t));
+
+	vert.flags = PVR_CMD_VERTEX_EOL;
+	/*vert.x = 448+xadd;*/ vert.y = 0;
+	pvr_prim(&vert, sizeof(pvr_vertex_t));
+
+	// horizontal line
+	vert.flags = PVR_CMD_VERTEX;
+	vert.x = 0; vert.y = (480-32)/2+1;
+	pvr_prim(&vert, sizeof(pvr_vertex_t));
+
+	/*vert.x = 640/2-1;*/ vert.y = (480-32)/2-1;
+	pvr_prim(&vert, sizeof(pvr_vertex_t));
+
+	vert.x = 640; vert.y = (480-32)/2+1;
+	pvr_prim(&vert, sizeof(pvr_vertex_t));
+
+	vert.flags = PVR_CMD_VERTEX_EOL;
+	/*vert.x = 448+xadd;*/ vert.y = (480-32)/2-1;
+	pvr_prim(&vert, sizeof(pvr_vertex_t));
+
+	// todo: draw health, score, frags, etc-display
 
 	pvr_list_finish();
 
