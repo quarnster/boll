@@ -10,7 +10,7 @@
 
 class Player;
 
-#define MAX_SCORE_NUM 50
+#define MAX_SCORE_NUM 200
 
 class Game {
 public:
@@ -19,9 +19,11 @@ public:
 
 	void run();
 
+	bool gameended;
 	Player		*player;
 	ScoreObject	score[MAX_SCORE_NUM];
 private:
+	void reset();
 	void update();
 	void draw();
 
@@ -29,7 +31,10 @@ private:
 	Level	level;
 
 	pvr_poly_hdr_t	crossHeader;
+	pvr_poly_hdr_t	fadeHeader;
 //	Object	*objects;
+	uint64	gamestart;
+	bool done;
 };
 
 #endif
