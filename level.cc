@@ -3,8 +3,8 @@
 
 extern q3dTypeFiller fillerLevel;
 
-#define NUM 33
-#define NUM1 32
+#define NUM 17
+#define NUM1 16
 /*
 static q3dTypeVertex vertex[3*NUM*NUM] __attribute__((aligned(32)));
 static q3dTypeVertex vertexScreen[3*NUM*NUM] __attribute__((aligned(32)));
@@ -61,16 +61,47 @@ Level::Level() {
 	// generate level
 	for (int z = 0; z < NUM1; z++) {
 		for (int x = 0; x < NUM1; x++) {
-			if (x % 4 == 0&& z % 4 == 0) {
-				levelData[pos] = HOLE;
-			} else if (x % 7 == 1 && z % 8 == 1) {
+			if (x == 0 || x == NUM1-1 || z == 0 || z == NUM1-1 || (x % 7 == 1 && z % 8 == 1)) {
 				levelData[pos] = HIGH;
+			} else if (x % 4 == 1 && z % 4 == 1) {
+				levelData[pos] = HOLE;
 			} else {
 				levelData[pos] = NORMAL;
 			}
 			pos++;
 		}
 	}
+/*
+	levelData[10 * 16 + 6] = HOLE;}
+	levelData[10 * 16 + 8] = HOLE;
+	levelData[10 * 16 + 7] = HOLE;
+	levelData[10 * 16 + 9] = HOLE;
+	levelData[10 * 16 + 10] = HOLE;
+
+	levelData[9 * 16 + 6] = HOLE;
+	levelData[9 * 16 + 8] = HOLE;
+	levelData[9 * 16 + 7] = HOLE;
+	levelData[9 * 16 + 9] = HOLE;
+	levelData[9 * 16 + 10] = HOLE;
+
+	levelData[8 * 16 + 6] = HOLE;
+	levelData[8 * 16 + 8] = HOLE;
+	levelData[8 * 16 + 7] = HOLE;
+	levelData[8 * 16 + 9] = HOLE;
+	levelData[8 * 16 + 10] = HOLE;
+
+	levelData[7 * 16 + 6] = HOLE;
+	levelData[7 * 16 + 8] = HOLE;
+	levelData[7 * 16 + 7] = HOLE;
+	levelData[7 * 16 + 9] = HOLE;
+	levelData[7 * 16 + 10] = HOLE;
+
+	levelData[6 * 16 + 6] = HOLE;
+	levelData[6 * 16 + 8] = HOLE;
+	levelData[6 * 16 + 7] = HOLE;
+	levelData[6 * 16 + 9] = HOLE;
+	levelData[6 * 16 + 10] = HOLE;
+*/
 	pos = 0;
 
 	// generate level from data
@@ -360,7 +391,7 @@ Level::Level() {
 		}
 	}
 	/* dummy...*/
-	malloc(16384+64);
+//	malloc(32768+64);
 	vertexScreen = (q3dTypeVertex*) malloc(data.vertexLength * sizeof(q3dTypeVertex) + 32);
 	vertexCam = (q3dTypeVertex*) malloc(data.vertexLength * sizeof(q3dTypeVertex) + 32);
 	vertexScreen = (q3dTypeVertex*) (((uint32)vertexScreen & ~31) + 32);
@@ -905,7 +936,8 @@ void Level::draw() {
 	pvr_dr_state_t state;
 	pvr_dr_init(state);
 
-	for (int i = 0; i < data.polygonLength; i++) {
+	int i = data.polygonLength;
+	while (i--) {
 		int j;
 		int test = 0;
 		bool cont = false;
@@ -921,6 +953,9 @@ void Level::draw() {
 //			}
 //		}
 
+#ifdef BETA
+		vertextest += 3;
+#endif
 		// test if polygon is outside the right plane
 		if (vertexCam[poly->vertex[0]].x > vertexCam[poly->vertex[0]].z+1)
 			test++;
@@ -931,6 +966,9 @@ void Level::draw() {
 		if (test == 3)
 			continue;
 
+#ifdef BETA
+		vertextest += 3;
+#endif
 		test = 0;
 		// test if polygon is outside the left plane
 		if (vertexCam[poly->vertex[0]].x < -vertexCam[poly->vertex[0]].z-1)
@@ -942,6 +980,10 @@ void Level::draw() {
 		if (test == 3)
 			continue;
 
+#ifdef BETA
+		vertextest += 3;
+#endif
+		test = 0;
 		// test if polygon is outside the far plane
 		if (vertexCam[poly->vertex[0]].z > far_clip_z)
 			test++;
@@ -951,7 +993,9 @@ void Level::draw() {
 			test++;
 		if (test == 3)
 			continue;
-
+#ifdef BETA
+		vertextest += 3;
+#endif
 		q3dTypeVertex temp;
 		float near_clip_z = 1.0f;
 		float near_clip_z_w = 0.001f;

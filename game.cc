@@ -11,13 +11,15 @@ static point_t w;
 extern uint32 polysent;
 extern uint32 vertextest;
 
-#define GAMELENGTH 0.25
+#define GAMELENGTH 2.5
 
 q3dTypePolyhedron *sphere;
 q3dTypePolyhedron *scorePolyhedron;
+q3dTypePolyhedron *powerupPolyhedron;
 q3dTypeFiller fillerPlayers;
 q3dTypeFiller fillerLevel;
 q3dTypeFiller fillerScore;
+q3dTypeFiller fillerPowerup;
 
 q3dTypeMatrix screen_matrix __attribute__((aligned(32))) = {
     { 640/4.0f, 0.0f, 0.0f, 0.0f },
@@ -34,14 +36,16 @@ Game::Game() {
 
 	sphere = generateSphere(10, 10);
 	scorePolyhedron = generateSphere(3, 3);
+	powerupPolyhedron = generateCube(1);
 
 	q3dPolyhedronCompile(sphere);
 	q3dPolyhedronCompile(scorePolyhedron);
+	q3dPolyhedronCompile(powerupPolyhedron);
 
 	q3dFillerTextureInit(&fillerPlayers);
 	fillerPlayers.defaultCxt = loadImage("player.png", PVR_LIST_OP_POLY);
 	fillerPlayers.defaultCxt.gen.clip_mode = PVR_USERCLIP_INSIDE;
-	fillerPlayers.defaultCxt.gen.fog_type = PVR_FOG_TABLE;
+//	fillerPlayers.defaultCxt.gen.fog_type = PVR_FOG_TABLE;
 	pvr_poly_compile(&fillerPlayers.defaultHeader, &fillerPlayers.defaultCxt);
 
 	q3dFillerTextureInit(&fillerLevel);
@@ -55,6 +59,11 @@ Game::Game() {
 //	fillerScore.defaultCxt.gen.fog_type = PVR_FOG_TABLE;
 	pvr_poly_compile(&fillerScore.defaultHeader, &fillerScore.defaultCxt);
 
+	q3dFillerStandardInit(&fillerPowerup);
+	fillerPowerup.defaultCxt.gen.clip_mode = PVR_USERCLIP_INSIDE;
+//	fillerPowerup.defaultCxt.gen.fog_type = PVR_FOG_TABLE;
+	pvr_poly_compile(&fillerPowerup.defaultHeader, &fillerPowerup.defaultCxt);
+
 	q3dCameraInit(&cam);
 	cam._pos.y = 5;
 	cam._pos.z = -5;
@@ -63,10 +72,10 @@ Game::Game() {
 	for (int i = 0; i < 4; i++)
 		player[i].setController(i);
 
-	player[0].position.set( 0,  0,  +2);
-	player[1].position.set( 0,  10, +2);
-	player[2].position.set(-2,  2, -2);
-	player[3].position.set(+2,  2, -2);
+	player[0].position.set( 0,  0,  +2); q3dColorSet3f(&player[0].baseColor, 1, 0, 0);
+	player[1].position.set( 0,  10, +2); q3dColorSet3f(&player[1].baseColor, 0, 1, 0);
+	player[2].position.set(-2,  2, -2); q3dColorSet3f(&player[2].baseColor, 0, 0, 1);
+	player[3].position.set(+2,  2, -2); q3dColorSet3f(&player[3].baseColor, 1, 1, 0);
 
 	pvr_poly_cxt_t cxt;
 	pvr_poly_cxt_col(
@@ -86,6 +95,8 @@ Game::Game() {
 	w.x = 20;
 	w.y = 32;
 	w.z = 100;
+
+	soundtrack = INGAMETRACK1 + rand() % INGAMETRACKNUM;
 }
 
 Game::~Game() {
@@ -98,20 +109,26 @@ Game::~Game() {
 	printf("done!\n");
 }
 
+extern bool done2;
 extern uint32 gametime;
 void Game::reset() {
+	endtrack = false;
 	done = false;
 	gamestart = timer_ms_gettime64();
 	gametime = 0;
 	gameended = false;
 
-	for (int i = 0; i < 4; i++)
-		player[i].score = 0;
+	for (int i = 0; i < 4; i++) {
+		player[i].setScore(0);
+		player[i].active = false;
+	}
 
 	player[0].position.set( 0,  0,  +2);
 	player[1].position.set( 0,  10, +2);
 	player[2].position.set(-2,  2, -2);
 	player[3].position.set(+2,  2, -2);
+
+	player[rand() % 4].active = true;
 
 	soundtrack++;
 	if (soundtrack >= INGAMETRACK1 + INGAMETRACKNUM)
@@ -123,12 +140,16 @@ void Game::reset() {
 //extern bool done;
 void Game::run() {
 	reset();
-	while (!done /*&& (gametime < 60 * 1000 * GAMELENGTH)*/) {
+	while (!done2 && !done /*&& (gametime < 60 * 1000 * GAMELENGTH)*/) {
 		// TODO: check for exit.. ?
 		gametime = timer_ms_gettime64() - gamestart;
+		if (!endtrack && gametime >= 60 * 1000 * GAMELENGTH - 12 * 1000) {
+			endtrack = true;
+			cdrom_cdda_play(SCORETRACK, SCORETRACK, 0, CDDA_TRACKS);
+		}
+
 		if (!gameended && gametime >= 60 * 1000 * GAMELENGTH) {
 			gameended = true;
-			cddaPlay(SCORETRACK);
 		}
 
 		update();
@@ -142,6 +163,9 @@ void Game::update() {
 
 	for (int i = 0; i < MAX_SCORE_NUM; i++) {
 		score[i].update(this);
+	}
+	for (int i = 0; i < MAX_POWERUP_NUM; i++) {
+		powerup[i].update(this);
 	}
 	level.update();
 }
@@ -165,13 +189,7 @@ void Game::draw() {
 
 	// draw..
 	for (int i = 0; i < 4; i++) {
-		q3dMatrixIdentity();
-		q3dMatrixTranslate(0,-4.5f-player[i].camheight-player[i].camadd, player[i].camzoom /*10*/);
-		q3dMatrixRotateX(player[i].camagl);
-		q3dMatrixRotateY(player[i].rotation.y);
-		q3dMatrixTranslate(-player[i].position.x, 0/*-player[i].position.y*/,-player[i].position.z);
-
-		q3dMatrixStore(&_q3dMatrixCamera);
+		player[i].camera.toMatrix();
 		if (i == 0) {
 			// upper left
 			screen_matrix[3][0] = 1 * 640 / 4.0f;
@@ -221,7 +239,7 @@ void Game::draw() {
 				continue;
 			if (vert.x > vert.z + 4)
 				continue;
-			if (vert.x < -vert.z-4)
+			if (vert.x < -vert.z - 4)
 				continue;
 
 			player[j].draw();
@@ -238,10 +256,27 @@ void Game::draw() {
 				continue;
 			if (vert.x > vert.z + 2)
 				continue;
-			if (vert.x < -vert.z-2)
+			if (vert.x < -vert.z - 2)
 				continue;
 
 			score[j].draw();
+		}
+		for (int j = 0; j < MAX_POWERUP_NUM; j++) {
+			q3dMatrixLoad(&_q3dMatrixCamera);
+			q3dVertexSet3f(&vert, powerup[j].position.x, powerup[j].position.y, powerup[j].position.z);
+			mat_trans_single3(vert.x, vert.y, vert.z);
+
+			// test if outside viewing frustum
+			if (vert.z < 0)
+				continue;
+			if (vert.z > 100)
+				continue;
+			if (vert.x > vert.z + 2.5)
+				continue;
+			if (vert.x < -vert.z - 2.5)
+				continue;
+
+			powerup[j].draw();
 		}
 
 		q3dMatrixIdentity();
@@ -304,7 +339,7 @@ void Game::draw() {
 	plx_fcxt_setcolor4f(fcxt, 1.0, 1.0, 1.0, 1.0);
 
 	plx_fcxt_setpos_pnt(fcxt, &w);
-	sprintf(buf, "%d", player[0].score);
+	sprintf(buf, "%d", player[0].getCurrentScore());
 	plx_fcxt_draw(fcxt, buf);
 
 #ifdef BETA
@@ -317,12 +352,12 @@ void Game::draw() {
 	plx_fcxt_setpos_pnt(fcxt, &w);
 	sprintf(buf, "polygons: %d", polysent);
 	plx_fcxt_draw(fcxt, buf);
-/*
+
 	w.y += 32;
 	plx_fcxt_setpos_pnt(fcxt, &w);
 	sprintf(buf, "tests: %d", vertextest);
 	plx_fcxt_draw(fcxt, buf);
-
+/*
 	w.y += 32;
 	plx_fcxt_setpos_pnt(fcxt, &w);
 	sprintf(buf, "pos: (%f, %f, %f)", player[0].position.x, player[0].position.y, player[0].position.z);
@@ -337,22 +372,22 @@ void Game::draw() {
 
 	w.x += 320;
 	plx_fcxt_setpos_pnt(fcxt, &w);
-	sprintf(buf, "%d", player[1].score);
+	sprintf(buf, "%d", player[1].getCurrentScore());
 	plx_fcxt_draw(fcxt, buf);
 
 	w.y += 240-32;
 	plx_fcxt_setpos_pnt(fcxt, &w);
-	sprintf(buf, "%d", player[3].score);
+	sprintf(buf, "%d", player[3].getCurrentScore());
 	plx_fcxt_draw(fcxt, buf);
 
 	w.x -= 320;
 	plx_fcxt_setpos_pnt(fcxt, &w);
-	sprintf(buf, "%d", player[2].score);
+	sprintf(buf, "%d", player[2].getCurrentScore());
 	plx_fcxt_draw(fcxt, buf);
 
 	long lsec = (gametime - (GAMELENGTH * 1000 * 60 - 10 * 1000));
 	float sec = lsec / 1000.0f;
-	if (sec > 0 && sec < 11) {
+	if (sec > 0 && sec < 10) {
 		int sec2 = (int) sec;
 		w.x = 320-32;
 		w.y = 240;
@@ -368,21 +403,33 @@ void Game::draw() {
 	}
 
 	if (sec > 10) {
-		float alpha = (sec - 10) * 0.125;
-		if (alpha > 0.75) alpha = 0.75;
+		float alpha = (sec - 20.7) * 0.5;
+		if (alpha > 1.0) alpha = 1.0;
+		else if (alpha < 0) alpha = 0;
 
 		int win = -1;
 		int winscore = -100000;
 		for (int i = 0; i < 4; i++) {
-			if (player[i].score > winscore) {
-				winscore = player[i].score;
+			int score = player[i].getScore();
+			if (score > winscore) {
+				winscore = score;
 				win = i;
 			}
 		}
-		w.x = 20;
+		w.x = 180;
 		w.y = 240;
 		w.z = 1001;
 
+		plx_fcxt_setsize(fcxt, 64);
+		plx_fcxt_setcolor4f(fcxt, 1.0-alpha, 1.0, 1.0, 1.0);
+		plx_fcxt_setpos_pnt(fcxt, &w);
+		plx_fcxt_draw(fcxt, "the end");
+
+		if (alpha > 0.75) alpha = 0.75;
+		else if (alpha < 0) alpha = 0;
+
+		w.x = 20;
+		w.y += 64;
 		plx_fcxt_setcolor4f(fcxt, alpha, 1.0, 1.0, 1.0);
 		plx_fcxt_setsize(fcxt, 64);
 		plx_fcxt_setpos_pnt(fcxt, &w);
