@@ -2,6 +2,7 @@
 
 #include "player.h"
 #include "level.h"
+#include "game.h"
 
 Player::Player() : Object() {
 	jumpstart = 0;
@@ -24,7 +25,7 @@ extern uint32 qtime;
 void Player::update(Game *game) {
 
 	maple_device_t *dev = maple_enum_dev(port, 0);
-	float ballradius = 1.0f;
+	float ballradius = 3.0f;
 	float level = 0;
 
 	// find out where in the level we are
@@ -45,7 +46,7 @@ void Player::update(Game *game) {
 		// we are at a cube
 		level = 10;
 		q3dColorSet3f(&color, 0.0f, 0.0f, 1.0f);
-		camadd = 10;
+//		camadd = 10;
 	} else {
 		// solid ground
 		q3dColorSet3f(&color, 0.0f, 1.0f, 0.0f);
@@ -58,22 +59,22 @@ void Player::update(Game *game) {
 		float speed = -s->joyy / 8000.0f;
 
 		if (s->buttons & CONT_DPAD_UP) {
-			camheight += 1.0f / 4.0f;
+			camagl += 1.0f / 64.0f;
 		} else if (s->buttons & CONT_DPAD_DOWN) {
-			camheight -= 1.0f / 4.0f;
+			camagl -= 1.0f / 64.0f;
 		}
 
 		if (s->buttons & CONT_DPAD_LEFT) {
-			zoom -= 1.0f / 4.0f;
+			camzoom -= 1.0f / 4.0f;
 		} else if (s->buttons & CONT_DPAD_RIGHT) {
-			zoom += 1.0f / 4.0f;
+			camzoom += 1.0f / 4.0f;
 		}
 
-		if (zoom < 2) zoom = 2;
-		else if (zoom > 15) zoom = 15;
+		if (camzoom < 5) camzoom = 5;
+		else if (camzoom > 40) camzoom = 40;
 
-		if (camheight < 1) camheight = 1;
-		else if (camheight > 8) camheight = 8;
+		if (camagl < 0) camagl = 0;
+		else if (camagl > 3.141592/2) camagl = 3.141592/2;
 
 		if (s->buttons & CONT_A) {
 			if (jumpplay && (qtime - jumpstart) < 400) {
@@ -178,8 +179,8 @@ void Player::update(Game *game) {
 
 		if (!(pos1 < 0 || pos1 >= 32)) {
 			pos1 += ipz * 32;
-			if (levelData[pos1] == HIGH && (fpx < 0.1 || fpx > 0.9)) {
-				float add = fpx < 0.1 ? 0.11 : 0.89;
+			if (levelData[pos1] == HIGH && (fpx < 0.3 || fpx > 0.7)) {
+				float add = fpx < 0.3 ? 0.31 : 0.69;
 				position.x = (float) (ipx + add) / 32.0f * 2 * LEVELSIZE - LEVELSIZE;
 				direction.x = -direction.x * 0.5;
 			}
@@ -188,8 +189,8 @@ void Player::update(Game *game) {
 		if (!(pos2 < 0 || pos2 >= 32)) {
 			pos2 *= 32;
 			pos2 += ipx;
-			if (levelData[pos2] == HIGH && (fpz < 0.1 || fpz > 0.9)) {
-				float add = fpz < 0.1 ? 0.11 : 0.89;
+			if (levelData[pos2] == HIGH && (fpz < 0.3 || fpz > 0.7)) {
+				float add = fpz < 0.3 ? 0.31 : 0.69;
 				position.z = ((float) (ipz + add) / 32.0f * 2 * LEVELSIZE - LEVELSIZE);
 				direction.z = -direction.z * 0.5;
 			}
@@ -215,11 +216,12 @@ void Player::update(Game *game) {
 	if (dietime > 0 || (position.y < 0 && level < 0)) {
 		// we are falling into a hole or are outside of the level
 		if (dietime == 0) {
+			score -= 50;
 			dietime = qtime;
 			snd_sfx_play(sounds[FALL], 255, 128);
 		} else if (qtime - dietime > 1500) {
 			dietime = 0;
-			position.y = 4;
+			position.y = 4*3;
 			position.x = -2;
 			position.z = 0;
 			direction.x = direction.y = direction.z = 0;
@@ -229,13 +231,20 @@ void Player::update(Game *game) {
 }
 
 void Player::draw() {
-	sphere->_agl.z = rotation.z;
-	sphere->_agl.x = rotation.x;
+//	sphere->_agl.z = rotation.z;
+//	sphere->_agl.x = rotation.x;
+//	q3dTypeQuaternion q;
+//	q3dTypeVector v;
+
+//	q3dVectorSet3f(&v, 1, 0, 0);
+
+	
 
 	q3dColorSetV(&sphere->material.color, &color);
 
 	q3dMatrixLoad(&_q3dMatrixCamera);
 	q3dMatrixTranslate(position.x, position.y, position.z);
+	q3dMatrixScale(3.0f, 3.0f, 3.0f);
 	q3dMatrixStore(&_q3dMatrixTemp);
 
 	q3dMatrixLoad(&_q3dMatrixPerspective);
