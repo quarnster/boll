@@ -47,7 +47,7 @@ private:
 	int thrusttime;
 	bool thrusting;
 
-	int dietime;
+	uint64 dietime;
 
 //	bool bice;
 
