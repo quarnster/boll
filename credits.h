@@ -15,7 +15,6 @@ public:
 private:
 	Plane	plane;
 	q3dTypeFiller torus1Filler;
-	q3dTypeFiller torus2Filler;
 
 	q3dTypeFiller cubeFiller;
 	q3dTypeFiller sphereFiller;
