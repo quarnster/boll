@@ -128,6 +128,7 @@ extern matrix_t projection_matrix;
 void Game::draw() {
 
 	// begin render with TA
+	pvr_wait_ready();
 	pvr_scene_begin();
 	pvr_list_begin(PVR_LIST_OP_POLY);
 
@@ -149,8 +150,8 @@ void Game::draw() {
 			user_clip.d4 = (480/2)/32-1;
 		} else if (i == 1) {
 			// upper right
-			screen_matrix[3][0] = 3 * 640 / 4.0f;
-			screen_matrix[3][1] = 1 * 480 / 4.0f;
+			screen_matrix[3][0] = 640 * 3 / 4.0f;
+			screen_matrix[3][1] = 480 * 1 / 4.0f;
 			user_clip.d1 = (640/2)/32;
 			user_clip.d2 = 0;
 			user_clip.d3 = (4*640/4)/32-1;
@@ -190,7 +191,7 @@ void Game::draw() {
 	pvr_prim(&crossHeader, sizeof(pvr_poly_hdr_t));
 	pvr_vertex_t vert;
 	vert.argb = PVR_PACK_COLOR(1.0f, 0.0f, 0.0f, 0.0f);
-	vert.z = 1 / 100.0f;
+	vert.z = 1 / 0.01f;
 
 	// vertical line
 	vert.flags = PVR_CMD_VERTEX;
@@ -227,6 +228,5 @@ void Game::draw() {
 	pvr_list_finish();
 
 	pvr_scene_finish();
-	pvr_wait_ready();
 }
 
