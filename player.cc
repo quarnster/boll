@@ -73,24 +73,21 @@ void Player::update() {
 	}
 }
 
-void Player::draw(q3dTypeCamera *cam) {
+void Player::draw() {
 	sphere->_agl.z = rotation.z;
 	sphere->_agl.x = rotation.x;
 
 	q3dColorSet3f(&sphere->material.color, 0.5f, 0.5f, 0.75f);
 
-	q3dMatrixLoad(&_q3dMatrixPerspective);
-	q3dMatrixApply(&_q3dMatrixCamera);
-	q3dMatrixTranslate(position.x, position.y, position.z);
-
-	q3dMatrixTransform(sphere->vertex, (pvr_vertex_t*)&sphere->_finalVertex[0].x, sphere->vertexLength, sizeof(pvr_vertex_t));
-
 	q3dMatrixLoad(&_q3dMatrixCamera);
 	q3dMatrixTranslate(position.x, position.y, position.z);
 	q3dMatrixStore(&_q3dMatrixTemp);
 
+	q3dMatrixLoad(&_q3dMatrixPerspective);
+	q3dMatrixApply(&_q3dMatrixTemp);
+
+	q3dMatrixTransform(sphere->vertex, (pvr_vertex_t*)&sphere->_finalVertex[0].x, sphere->vertexLength, sizeof(pvr_vertex_t));
 	q3dMatrixTransformNormals(sphere->_uVertexNormal, sphere->_vertexNormal, sphere->vertexLength);
-//	q3dMatrixTransformNormals(poly->_uPolygonNormal, poly->_polygonNormal, poly->polygonLength);
 
 	fillerPlayers.update(sphere);
 	pvr_prim(&fillerPlayers.defaultHeader, sizeof(pvr_poly_hdr_t));
