@@ -91,7 +91,7 @@ void handle_time(irq_t source, irq_context_t *context) {
 	if (!blah) qtime+=2;
 }
 
-KOS_INIT_FLAGS(INIT_DEFAULT | INIT_MALLOCSTATS);
+KOS_INIT_FLAGS(INIT_IRQ | INIT_MALLOCSTATS);
 
 pvr_poly_cxt_t loadImage(char *name, int list) {
 	pvr_poly_cxt_t	cxt;
