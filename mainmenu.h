@@ -8,7 +8,7 @@
 class MainMenu : public Menu {
 public:
 	MainMenu();
-	~MainMenu();
+	virtual ~MainMenu();
 
 	int showMenu();
 
