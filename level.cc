@@ -23,6 +23,8 @@ uint8 levelData[NUM1 * NUM1];
 
 static q3dTypeLevel data;
 
+static uint32 *normalIndex;
+
 #define setTex1(polygon) \
 			polygon.texel = (q3dTypeTexel*) malloc(3 * sizeof(q3dTypeTexel)); \
 			polygon.texel[0].u = 0; \
@@ -118,6 +120,15 @@ Level::Level() {
 //				data.polygonLength += 5;
 				data.vertexLength += 4;
 				data.vertexLength += 4;
+				if (x != 0 && levelData[pos-1] == HIGH) {
+					// the right one on the previous and the left
+					// on this
+					data.polygonLength -= 2;
+				}
+				//if (x != NUM1-1 && levelData[pos-1] == HIGH
+				if (z != 0 && levelData[pos-NUM1] == HIGH) {
+					data.polygonLength -= 2;
+				}
 			} else {
 				data.vertexLength += 4;
 				data.polygonLength++;
@@ -132,6 +143,8 @@ Level::Level() {
 	// baselevel vertex-data
 	data.vertex = (q3dTypeVertex*) malloc(data.vertexLength * sizeof(q3dTypeVertex) + 32);
 	data.polygon = (q3dTypePolygon*) malloc(data.polygonLength * sizeof(q3dTypePolygon));
+
+	normalIndex = new uint32[data.polygonLength];
 	/* align to 32 bytes */
 //	data.vertex = (q3dTypeVertex*) (((uint32)data.vertex & ~31) + 32);
 
@@ -168,6 +181,7 @@ Level::Level() {
 				data.polygon[polypos].vertex[1] = vertpos - 3;
 				data.polygon[polypos].vertex[2] = vertpos - 2;
 				setTex1(data.polygon[polypos]);
+				normalIndex[polypos] = 0;
 				polypos++;
 
 				data.polygon[polypos].vertexLength = 3;
@@ -177,6 +191,7 @@ Level::Level() {
 				data.polygon[polypos].vertex[1] = vertpos - 2;
 				data.polygon[polypos].vertex[2] = vertpos - 3;
 				setTex2(data.polygon[polypos]);
+				normalIndex[polypos] = 0;
 				polypos++;
 /*
 				data.polygon[polypos].vertexLength = 4;
@@ -247,6 +262,7 @@ Level::Level() {
 				data.polygon[polypos].vertex[1] = vertpos - 3;
 				data.polygon[polypos].vertex[2] = vertpos - 2;
 				setTex1(data.polygon[polypos]);
+				normalIndex[polypos] = 0;
 				polypos++;
 
 				data.polygon[polypos].vertexLength = 3;
@@ -256,85 +272,102 @@ Level::Level() {
 				data.polygon[polypos].vertex[1] = vertpos - 2;
 				data.polygon[polypos].vertex[2] = vertpos - 3;
 				setTex2(data.polygon[polypos]);
+				normalIndex[polypos] = 0;
 				polypos++;
 
 
-				// front
-				data.polygon[polypos].vertexLength = 3;
-				data.polygon[polypos].vertex = (uint16*) malloc(3 * sizeof(uint16));
+				
+				if (z == 0 || (z != 0 && levelData[pos-NUM1] != HIGH)) {
+					// front
+					data.polygon[polypos].vertexLength = 3;
+					data.polygon[polypos].vertex = (uint16*) malloc(3 * sizeof(uint16));
 
-				data.polygon[polypos].vertex[0] = vertpos - 4-4;
-				data.polygon[polypos].vertex[1] = vertpos - 4;
-				data.polygon[polypos].vertex[2] = vertpos - 2-4;
-				setTex1(data.polygon[polypos]);
-				polypos++;
+					data.polygon[polypos].vertex[0] = vertpos - 4-4;
+					data.polygon[polypos].vertex[1] = vertpos - 4;
+					data.polygon[polypos].vertex[2] = vertpos - 2-4;
+					setTex1(data.polygon[polypos]);
+					normalIndex[polypos] = 2;
+					polypos++;
 
-				data.polygon[polypos].vertexLength = 3;
-				data.polygon[polypos].vertex = (uint16*) malloc(3 * sizeof(uint16));
+					data.polygon[polypos].vertexLength = 3;
+					data.polygon[polypos].vertex = (uint16*) malloc(3 * sizeof(uint16));
 
-				data.polygon[polypos].vertex[0] = vertpos - 2;
-				data.polygon[polypos].vertex[1] = vertpos - 2-4;
-				data.polygon[polypos].vertex[2] = vertpos - 4;
-				setTex2(data.polygon[polypos]);
-				polypos++;
+					data.polygon[polypos].vertex[0] = vertpos - 2;
+					data.polygon[polypos].vertex[1] = vertpos - 2-4;
+					data.polygon[polypos].vertex[2] = vertpos - 4;
+					setTex2(data.polygon[polypos]);
+					normalIndex[polypos] = 2;
+					polypos++;
+				}
 
-				// back
-				data.polygon[polypos].vertexLength = 3;
-				data.polygon[polypos].vertex = (uint16*) malloc(3 * sizeof(uint16));
+				if (z == NUM1-1 || (z != NUM1-1 && levelData[pos+NUM1] != HIGH)) {
+					// back
+					data.polygon[polypos].vertexLength = 3;
+					data.polygon[polypos].vertex = (uint16*) malloc(3 * sizeof(uint16));
 
-				data.polygon[polypos].vertex[0] = vertpos - 3-4;
-				data.polygon[polypos].vertex[1] = vertpos - 1-4;
-				data.polygon[polypos].vertex[2] = vertpos - 3;
-				setTex1(data.polygon[polypos]);
-				polypos++;
+					data.polygon[polypos].vertex[0] = vertpos - 3-4;
+					data.polygon[polypos].vertex[1] = vertpos - 1-4;
+					data.polygon[polypos].vertex[2] = vertpos - 3;
+					setTex1(data.polygon[polypos]);
+					normalIndex[polypos] = 4;
+					polypos++;
 
-				data.polygon[polypos].vertexLength = 3;
-				data.polygon[polypos].vertex = (uint16*) malloc(3 * sizeof(uint16));
+					data.polygon[polypos].vertexLength = 3;
+					data.polygon[polypos].vertex = (uint16*) malloc(3 * sizeof(uint16));
 
-				data.polygon[polypos].vertex[0] = vertpos - 1;
-				data.polygon[polypos].vertex[1] = vertpos - 3;
-				data.polygon[polypos].vertex[2] = vertpos - 1-4;
-				setTex2(data.polygon[polypos]);
-				polypos++;
+					data.polygon[polypos].vertex[0] = vertpos - 1;
+					data.polygon[polypos].vertex[1] = vertpos - 3;
+					data.polygon[polypos].vertex[2] = vertpos - 1-4;
+					setTex2(data.polygon[polypos]);
+					normalIndex[polypos] = 4;
+					polypos++;
+				}
 
-				// left
-				data.polygon[polypos].vertexLength = 3;
-				data.polygon[polypos].vertex = (uint16*) malloc(3 * sizeof(uint16));
+				if (x == 0 || (x != 0 && levelData[pos-1] != HIGH)) {
+					// left
+					data.polygon[polypos].vertexLength = 3;
+					data.polygon[polypos].vertex = (uint16*) malloc(3 * sizeof(uint16));
 
-				data.polygon[polypos].vertex[0] = vertpos - 4-4;
-				data.polygon[polypos].vertex[1] = vertpos - 3-4;
-				data.polygon[polypos].vertex[2] = vertpos - 4;
-				setTex1(data.polygon[polypos]);
-				polypos++;
+					data.polygon[polypos].vertex[0] = vertpos - 4-4;
+					data.polygon[polypos].vertex[1] = vertpos - 3-4;
+					data.polygon[polypos].vertex[2] = vertpos - 4;
+					setTex1(data.polygon[polypos]);
+					normalIndex[polypos] = 1;
+					polypos++;
 
-				data.polygon[polypos].vertexLength = 3;
-				data.polygon[polypos].vertex = (uint16*) malloc(3 * sizeof(uint16));
+					data.polygon[polypos].vertexLength = 3;
+					data.polygon[polypos].vertex = (uint16*) malloc(3 * sizeof(uint16));
 
-				data.polygon[polypos].vertex[0] = vertpos - 3;
-				data.polygon[polypos].vertex[1] = vertpos - 4;
-				data.polygon[polypos].vertex[2] = vertpos - 3-4;
-				setTex2(data.polygon[polypos]);
-				polypos++;
+					data.polygon[polypos].vertex[0] = vertpos - 3;
+					data.polygon[polypos].vertex[1] = vertpos - 4;
+					data.polygon[polypos].vertex[2] = vertpos - 3-4;
+					setTex2(data.polygon[polypos]);
+					normalIndex[polypos] = 1;
+					polypos++;
+				}
 
-				// right
-				data.polygon[polypos].vertexLength = 3;
-				data.polygon[polypos].vertex = (uint16*) malloc(3 * sizeof(uint16));
+				if (x == NUM1-1 || (x != NUM1-1 && levelData[pos+1] != HIGH)) {
+					// right
+					data.polygon[polypos].vertexLength = 3;
+					data.polygon[polypos].vertex = (uint16*) malloc(3 * sizeof(uint16));
 
-				data.polygon[polypos].vertex[0] = vertpos - 1-4;
-				data.polygon[polypos].vertex[1] = vertpos - 2-4;
-				data.polygon[polypos].vertex[2] = vertpos - 1;
-				setTex1(data.polygon[polypos]);
-				polypos++;
+					data.polygon[polypos].vertex[0] = vertpos - 1-4;
+					data.polygon[polypos].vertex[1] = vertpos - 2-4;
+					data.polygon[polypos].vertex[2] = vertpos - 1;
+					setTex1(data.polygon[polypos]);
+					normalIndex[polypos] = 3;
+					polypos++;
 
-				data.polygon[polypos].vertexLength = 3;
-				data.polygon[polypos].vertex = (uint16*) malloc(3 * sizeof(uint16));
+					data.polygon[polypos].vertexLength = 3;
+					data.polygon[polypos].vertex = (uint16*) malloc(3 * sizeof(uint16));
 
-				data.polygon[polypos].vertex[0] = vertpos - 2;
-				data.polygon[polypos].vertex[1] = vertpos - 1;
-				data.polygon[polypos].vertex[2] = vertpos - 2-4;
-				setTex2(data.polygon[polypos]);
-				polypos++;
-
+					data.polygon[polypos].vertex[0] = vertpos - 2;
+					data.polygon[polypos].vertex[1] = vertpos - 1;
+					data.polygon[polypos].vertex[2] = vertpos - 2-4;
+					setTex2(data.polygon[polypos]);
+					normalIndex[polypos] = 3;
+					polypos++;
+				}
 			}
 		}
 	}
@@ -429,7 +462,7 @@ Level::Level() {
 	}
 */
 
-	q3dVectorSet3f(&normals[0],  0, -1,  0);
+	q3dVectorSet3f(&normals[0],  0,  1,  0);
 	q3dVectorSet3f(&normals[1], -1,  0,  0);
 	q3dVectorSet3f(&normals[2],  0,  0, -1);
 	q3dVectorSet3f(&normals[3],  1,  0,  0);
@@ -805,15 +838,18 @@ void Level::draw() {
 
 
 
-//	q3dMatrixLoad(&projection_matrix);
 	q3dMatrixLoad(&_q3dMatrixCamera);
-//	q3dMatrixTransform(position, positionWorld, NUM1*NUM1, sizeof(q3dTypeVertex));
-//	mat_transform(data.vertex, vertexCam, data.vertexLength, sizeof(q3dTypeVertex));
 	q3dMatrixTransform(data.vertex, vertexCam, data.vertexLength, sizeof(q3dTypeVertex));
 
-//	q3dMatrixRotateY(
-//	q3dMatrixStore(&_q3dMatrixTemp);
-//	q3dMatrixTransformNormals(normals, normalsWorld, 5);
+	q3dMatrixStore(&_q3dMatrixTemp);
+	q3dMatrixTransformNormals(normals, normalsWorld, 5);
+
+	static uint32 colors[5];
+	for (int i = 0; i < 5; i++) {
+		float shade = 0.5f - normalsWorld[i].z * 0.5f;
+		shade = shade < 0 ? 0 : shade > 1 ? 1 : shade;
+		colors[i] = PVR_PACK_COLOR(1.0f, shade, shade, shade);
+	}
 
 	// transform vertices
 //	q3dMatrixLoad(&_q3dMatrixPerspective);
@@ -869,7 +905,7 @@ void Level::draw() {
 */
 	int32 color[5];
 	for (int i = 0; i < 5; i++) {
-		float shade = 0.5 + normalsWorld[i].z * 0.5f;
+		float shade = 0.25f + normalsWorld[i].z * 0.75f;
 		shade = shade < 0 ? 0 : shade > 1 ? 1 : shade;
 
 		color[i] = PVR_PACK_COLOR(1, shade, shade, shade);
@@ -936,12 +972,13 @@ void Level::draw() {
 	pvr_dr_state_t state;
 	pvr_dr_init(state);
 
+
 	int i = data.polygonLength;
 	while (i--) {
 		int j;
 		int test = 0;
 		bool cont = false;
-		float far_clip_z = 100.0f;
+		float far_clip_z = 150.0f;
 
 		int len = data.polygon[i].vertexLength;
 		int color = 0xffffff;
@@ -983,6 +1020,7 @@ void Level::draw() {
 #ifdef BETA
 		vertextest += 3;
 #endif
+
 		test = 0;
 		// test if polygon is outside the far plane
 		if (vertexCam[poly->vertex[0]].z > far_clip_z)
@@ -993,9 +1031,11 @@ void Level::draw() {
 			test++;
 		if (test == 3)
 			continue;
+
 #ifdef BETA
 		vertextest += 3;
 #endif
+
 		q3dTypeVertex temp;
 		float near_clip_z = 1.0f;
 		float near_clip_z_w = 0.001f;
@@ -1031,6 +1071,8 @@ void Level::draw() {
 
 		pvr_vertex_t *vert;
 		q3dTypeVertex *vert2;
+
+		color = colors[normalIndex[i]];
 
 		if (inside == 1) {
 			if (!(stat & 1)) {
