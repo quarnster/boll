@@ -9,7 +9,7 @@ public:
 	Credits();
 	~Credits();
 
-	void draw();
+	void run();
 
 private:
 	q3dTypeFiller cubeFiller;
