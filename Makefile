@@ -13,7 +13,7 @@ OBJS = \
 	credits.o \
 	game.o \
 	level.o \
-	object.o \
+	scoreobject.o \
 	player.o \
 	ntscmenu.o \
 	mainmenu.o \
