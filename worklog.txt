@@ -1,0 +1,6 @@
+Friday, January 23
+
+thec gave me the idea for this game on our irc-channel #outbreak at ircnet.
+discussed this quite a bit with thec and also did lots of thinking on my own.
+emailed loosen@goatstore.com to say that I will enter this competition.
+created some baseclasses and thought a bit on how to implement the whole thing.
