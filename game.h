@@ -12,7 +12,7 @@
 class Player;
 
 #define MAX_SCORE_NUM 0
-#define MAX_POWERUP_NUM 1
+#define MAX_POWERUP_NUM 0
 
 class Game {
 public:
@@ -21,6 +21,7 @@ public:
 
 	void run();
 
+	uint32	frame;
 	bool gameended;
 	Player		*player;
 	ScoreObject	score[MAX_SCORE_NUM];
