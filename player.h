@@ -11,7 +11,7 @@ public:
 
 	void setController(int port);
 	void update();
-	void draw(q3dTypeCamera *cam);
+	void draw();
 
 private:
 	int port;
