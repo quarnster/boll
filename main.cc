@@ -1,10 +1,13 @@
 #include <kos.h>
 #include <math.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include <q3d.h>
+#include <arch/rtc.h>
 
 // #include "player.h"
+#include "disclaimer.h"
 #include "mainmenu.h"
 #include "ntscmenu.h"
 #include "game.h"
@@ -96,15 +99,15 @@ void handle_time(irq_t source, irq_context_t *context) {
 KOS_INIT_FLAGS(INIT_DEFAULT /*INIT_IRQ*/ | INIT_MALLOCSTATS);
 
 pvr_init_params_t pvr_params = {
-	{ PVR_BINSIZE_32, PVR_BINSIZE_0, PVR_BINSIZE_16, PVR_BINSIZE_0, PVR_BINSIZE_16 },
-	4*512 * 1024
+	{ PVR_BINSIZE_32, PVR_BINSIZE_0, PVR_BINSIZE_8, PVR_BINSIZE_0, PVR_BINSIZE_16 },
+	1 * 4*512 * 1024
 };
 
 extern "C" int snd_init();
 
-bool done = false;
+bool done2 = false;
 void ccallback(uint8 addr, uint32 buttons) {
-	done = true;
+	done2 = true;
 }
 
 
@@ -116,9 +119,11 @@ enum {
 	MAINMENU,
 	NTSCMENU
 };
+
 int main(int argc, char **argv) {
 	// Initialize KOS
 	pvr_init(&pvr_params);
+	srand(rtc_unix_secs());
 
 #ifndef FINAL
 	fs_chdir("/pc/home/quarn/code/dreamcast/game/data");
@@ -126,7 +131,10 @@ int main(int argc, char **argv) {
 	fs_chdir("/cd/data");
 #endif
 
+	loadFont();
+
 #ifndef	BETA
+	Disclaimer d;
 	// Select the correct video-mode
 	if (vid_check_cable() == CT_VGA) {
 		vid_set_mode(DM_640x480_VGA, PM_RGB565);
@@ -137,6 +145,7 @@ int main(int argc, char **argv) {
 	} else {
 		vid_set_mode(DM_640x480_NTSC_IL, PM_RGB565);
 	}
+	d.show();
 #else
 	vid_set_mode(DM_640x480, PM_RGB565);
 #endif
@@ -146,6 +155,8 @@ int main(int argc, char **argv) {
 //	timer_start(TMU1);
 
 //	irq_set_handler(TIMER_IRQ, &handle_time);
+
+	uint64 t1 = timer_ms_gettime64();
 
 	snd_init();
 
@@ -158,8 +169,9 @@ int main(int argc, char **argv) {
 #endif
 
 	pvr_fog_table_color(1, 0, 0, 0);
-	pvr_fog_table_exp2(0.015f);
+	pvr_fog_table_exp2(0.010f);
 
+	spu_cdda_volume(255, 255);
 	loadResources();
 
 	Game game;
@@ -167,9 +179,11 @@ int main(int argc, char **argv) {
 	MainMenu mmenu;
 
 
+	while ((timer_ms_gettime64() - t1) < 20000);
+
 	int mode = MAINMENU;
 
-	while (!done) {
+	while (!done2) {
 //		gametime = timer_ms_gettime64();
 		switch (mode) {
 			case MAINMENU:
